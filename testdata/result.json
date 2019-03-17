@@ -1,0 +1,93 @@
+{
+  "index": [
+    {
+      "anno": "Имя процедуры",
+      "arg": "code",
+      "type": "text"
+    },
+    {
+      "anno": "Имя схемы хранимой функции",
+      "arg": "nspname",
+      "type": "name"
+    },
+    {
+      "anno": "Имя хранимой функции",
+      "arg": "proname",
+      "type": "name"
+    },
+    {
+      "anno": "Метод возвращает 0..N строк",
+      "arg": "is_set",
+      "type": "boolean"
+    },
+    {
+      "anno": "Метод Read-only",
+      "arg": "is_ro",
+      "type": "boolean"
+    },
+    {
+      "anno": "Результат является структурой",
+      "arg": "is_struct",
+      "type": "boolean"
+    },
+    {
+      "anno": "Имя типа результата",
+      "arg": "result",
+      "type": "text"
+    },
+    {
+      "anno": "Описание",
+      "arg": "anno",
+      "type": "text"
+    },
+    {
+      "anno": "Пример вызова",
+      "arg": "sample",
+      "type": "text"
+    }
+  ],
+  "func_args": [
+    {
+      "anno": "Имя аргумента",
+      "arg": "arg",
+      "type": "text"
+    },
+    {
+      "anno": "Тип аргумента",
+      "arg": "type",
+      "type": "text"
+    },
+    {
+      "anno": "Значение обязательно",
+      "arg": "required",
+      "type": "boolean"
+    },
+    {
+      "anno": "Значение по умолчанию",
+      "arg": "def_val",
+      "type": "text"
+    },
+    {
+      "anno": "Описание",
+      "arg": "anno",
+      "type": "text"
+    }
+  ],
+  "func_result": [
+    {
+      "anno": "Имя аргумента",
+      "arg": "arg",
+      "type": "text"
+    },
+    {
+      "anno": "Тип аргумента",
+      "arg": "type",
+      "type": "text"
+    },
+    {
+      "anno": "Описание",
+      "arg": "anno",
+      "type": "text"
+    }
+  ]
+}

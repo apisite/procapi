@@ -1,0 +1,147 @@
+{
+  "func_args": {
+    "Name": "func_args",
+    "Class": "pgfc_test",
+    "Func": "func_args",
+    "Anno": "Атрибуты аргументов ф-и",
+    "IsRO": true,
+    "IsSet": true,
+    "IsStruct": true,
+    "Sample": "{\"code\": \"func_args\"}",
+    "In": {
+      "code": {
+        "Name": "a_code",
+        "Type": "text",
+        "Required": true,
+        "Anno": "Имя функции"
+      }
+    },
+    "Out": [
+      {
+        "Name": "arg",
+        "Type": "text",
+        "Anno": "Имя аргумента"
+      },
+      {
+        "Name": "type",
+        "Type": "text",
+        "Anno": "Тип аргумента"
+      },
+      {
+        "Name": "required",
+        "Type": "boolean",
+        "Anno": "Значение обязательно"
+      },
+      {
+        "Name": "def_val",
+        "Type": "text",
+        "Anno": "Значение по умолчанию"
+      },
+      {
+        "Name": "anno",
+        "Type": "text",
+        "Anno": "Описание"
+      }
+    ]
+  },
+  "func_result": {
+    "Name": "func_result",
+    "Class": "pgfc_test",
+    "Func": "func_result",
+    "Anno": "Атрибуты результата ф-и",
+    "IsRO": true,
+    "IsSet": true,
+    "IsStruct": true,
+    "Sample": "{\"code\": \"func_args\"}",
+    "In": {
+      "code": {
+        "Name": "a_code",
+        "Type": "text",
+        "Required": true,
+        "Anno": "Имя функции"
+      }
+    },
+    "Out": [
+      {
+        "Name": "arg",
+        "Type": "text",
+        "Anno": "Имя аргумента"
+      },
+      {
+        "Name": "type",
+        "Type": "text",
+        "Anno": "Тип аргумента"
+      },
+      {
+        "Name": "anno",
+        "Type": "text",
+        "Anno": "Описание"
+      }
+    ]
+  },
+  "index": {
+    "Name": "index",
+    "Class": "pgfc_test",
+    "Func": "index",
+    "Anno": "Список функций",
+    "IsRO": true,
+    "IsSet": true,
+    "IsStruct": true,
+    "Sample": "{\"nsp\":\"pgfc_test\"}",
+    "In": {
+      "nsp": {
+        "Name": "a_nsp",
+        "Type": "text",
+        "Required": false,
+        "Anno": "Схема БД"
+      }
+    },
+    "Out": [
+      {
+        "Name": "code",
+        "Type": "text",
+        "Anno": "Имя процедуры"
+      },
+      {
+        "Name": "nspname",
+        "Type": "name",
+        "Anno": "Имя схемы хранимой функции"
+      },
+      {
+        "Name": "proname",
+        "Type": "name",
+        "Anno": "Имя хранимой функции"
+      },
+      {
+        "Name": "is_set",
+        "Type": "boolean",
+        "Anno": "Метод возвращает 0..N строк"
+      },
+      {
+        "Name": "is_ro",
+        "Type": "boolean",
+        "Anno": "Метод Read-only"
+      },
+      {
+        "Name": "is_struct",
+        "Type": "boolean",
+        "Anno": "Результат является структурой"
+      },
+      {
+        "Name": "result",
+        "Type": "text",
+        "Anno": "Имя типа результата"
+      },
+      {
+        "Name": "anno",
+        "Type": "text",
+        "Anno": "Описание"
+      },
+      {
+        "Name": "sample",
+        "Type": "text",
+        "Anno": "Пример вызова"
+      }
+    ]
+  }
+}

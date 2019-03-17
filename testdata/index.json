@@ -1,0 +1,32 @@
+[
+  {
+    "anno": "Атрибуты аргументов ф-и",
+    "code": "func_args",
+    "is_ro": true,
+    "is_set": true,
+    "is_struct": true,
+    "nspname": "pgfc_test",
+    "proname": "func_args",
+    "sample": "{\"code\": \"func_args\"}"
+  },
+  {
+    "anno": "Атрибуты результата ф-и",
+    "code": "func_result",
+    "is_ro": true,
+    "is_set": true,
+    "is_struct": true,
+    "nspname": "pgfc_test",
+    "proname": "func_result",
+    "sample": "{\"code\": \"func_args\"}"
+  },
+  {
+    "anno": "Список функций",
+    "code": "index",
+    "is_ro": true,
+    "is_set": true,
+    "is_struct": true,
+    "nspname": "pgfc_test",
+    "proname": "index",
+    "sample": "{\"nsp\":\"pgfc_test\"}"
+  }
+]
