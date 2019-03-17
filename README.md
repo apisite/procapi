@@ -8,11 +8,17 @@
 # pgcall
 > golang package for postgresql functions calling
 
-[![GoCard][gc1]][gc2]
+[![GoDoc][gd1]][gd2]
+ [![codecov][cc1]][cc2]
+ [![GoCard][gc1]][gc2]
  [![GitHub Release][gr1]][gr2]
  [![GitHub code size in bytes][sz]]()
  [![GitHub license][gl1]][gl2]
 
+[cc1]: https://codecov.io/gh/apisite/pgcall/branch/master/graph/badge.svg
+[cc2]: https://codecov.io/gh/apisite/pgcall
+[gd1]: https://godoc.org/github.com/apisite/pgcall?status.svg
+[gd2]: https://godoc.org/github.com/apisite/pgcall
 [gc1]: https://goreportcard.com/badge/apisite/pgcall
 [gc2]: https://goreportcard.com/report/github.com/apisite/pgcall
 [gr1]: https://img.shields.io/github/release/apisite/pgcall/all.svg
@@ -26,12 +32,6 @@
 </p>
 
 **Project status:** PoC is ready
-
-## Notes
-
-### Notes for "b2" prefix
-
-It means "bridge to" and named in favour of [B-2](https://ru.wikipedia.org/wiki/%D0%91%D0%B8-2) group
 
 ## License
 

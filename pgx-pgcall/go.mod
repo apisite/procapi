@@ -1,4 +1,4 @@
-module github.com/apisite/pgcall/pgxpgcall
+module github.com/apisite/pgcall/pgx-pgcall
 
 require (
 	github.com/apisite/pgcall/pgiface v0.0.0

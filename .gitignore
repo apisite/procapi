@@ -1,5 +1,5 @@
 generated*
 tmp*
 TODO*
-coverage.out
+coverage.*
 .env
