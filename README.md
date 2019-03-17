@@ -21,7 +21,7 @@
 [gd2]: https://godoc.org/github.com/apisite/pgcall
 [gc1]: https://goreportcard.com/badge/apisite/pgcall
 [gc2]: https://goreportcard.com/report/github.com/apisite/pgcall
-[gr1]: https://img.shields.io/github/release/apisite/pgcall/all.svg
+[gr1]: https://img.shields.io/github/release-pre/apisite/pgcall/all.svg
 [gr2]: https://github.com/apisite/pgcall/releases
 [sz]: https://img.shields.io/github/languages/code-size/apisite/pgcall.svg
 [gl1]: https://img.shields.io/github/license/apisite/pgcall.svg
@@ -31,7 +31,7 @@
 <a target="_blank" rel="noopener noreferrer" href="../src/arch.png"><img src="docs/src/arch.png" title="Архитектура проекта" style="max-width:100%;"></a>
 </p>
 
-**Project status:** PoC is ready
+**Project status:** WIP
 
 ## License
 
