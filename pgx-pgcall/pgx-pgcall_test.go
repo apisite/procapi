@@ -8,7 +8,6 @@ import (
 	mapper "github.com/birkirb/loggers-mapper-logrus"
 	"github.com/jessevdk/go-flags"
 	"github.com/sirupsen/logrus"
-
 	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -18,8 +17,7 @@ import (
 
 type ServerSuite struct {
 	suite.Suite
-	cfg Config
-
+	cfg  Config
 	srv  *DB
 	hook *test.Hook
 	log  loggers.Contextual
@@ -61,7 +59,7 @@ func (ss *ServerSuite) TestQueryProc() {
 	rv, err := ss.srv.QueryProc(q, "index")
 	require.NoError(ss.T(), err)
 	want := []map[string]interface{}{
-		map[string]interface{}{"anno": "Схема БД", "arg": "a_nsp", "def_val": interface{}(nil), "required": false, "type": "text"},
+		{"anno": "Схема БД", "arg": "a_nsp", "def_val": interface{}(nil), "required": false, "type": "text"},
 	}
 	assert.Equal(ss.T(), want, rv)
 

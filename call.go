@@ -22,37 +22,12 @@ func (srv *Server) Call(r *http.Request,
 		return nil, (&CallError{code: NotFound}).addContext("name", method)
 	}
 
-	var inAssigns []string
 	var missedArgs []string
+	var inAssigns []string
 	var inVars []interface{}
 
 	if methodSpec.In != nil {
-		srv.log.Debugf("IN args: %+v", *methodSpec.In)
-		for k, v := range *methodSpec.In {
-			a, ok := args[k]
-			if !ok {
-				if v.Required {
-					missedArgs = append(missedArgs, k)
-				} else {
-					srv.log.Debugf("Skip missed value of %s", k)
-				}
-				continue
-			}
-			if reflect.ValueOf(a).Kind() == reflect.Ptr {
-				if reflect.ValueOf(a).IsNil() {
-					if v.Required {
-						missedArgs = append(missedArgs, k)
-					} else {
-						srv.log.Debugf("Skip missed ref of %s", k)
-					}
-					continue
-				}
-				a = reflect.ValueOf(a).Elem().Interface() // dereference ptr
-			}
-			inAssigns = append(inAssigns, fmt.Sprintf("%s %s $%d", v.Name, srv.config.ArgSyntax, len(inAssigns)+1))
-			inVars = append(inVars, a)
-			srv.log.Debugf("Use: %s (%+v)", k, a)
-		}
+		missedArgs, inAssigns, inVars = srv.prepareArgs(methodSpec.In, args)
 	}
 	if len(missedArgs) > 0 {
 		return nil, (&CallError{code: ArgsMissed}).addContext("args", missedArgs)
@@ -108,4 +83,41 @@ func (srv *Server) Call(r *http.Request,
 		return &rv1[0], nil
 	}
 	return rv, nil
+}
+
+func (srv Server) prepareArgs(
+	inDef *map[string]InDef,
+	args map[string]interface{},
+) (
+	missedArgs []string,
+	inAssigns []string,
+	inVars []interface{},
+) {
+	srv.log.Debugf("IN args: %+v", *inDef)
+	for k, v := range *inDef {
+		a, ok := args[k]
+		if !ok {
+			if v.Required {
+				missedArgs = append(missedArgs, k)
+			} else {
+				srv.log.Debugf("Skip missed value of %s", k)
+			}
+			continue
+		}
+		if reflect.ValueOf(a).Kind() == reflect.Ptr {
+			if reflect.ValueOf(a).IsNil() {
+				if v.Required {
+					missedArgs = append(missedArgs, k)
+				} else {
+					srv.log.Debugf("Skip missed ref of %s", k)
+				}
+				continue
+			}
+			a = reflect.ValueOf(a).Elem().Interface() // dereference ptr
+		}
+		inAssigns = append(inAssigns, fmt.Sprintf("%s %s $%d", v.Name, srv.config.ArgSyntax, len(inAssigns)+1))
+		inVars = append(inVars, a)
+		srv.log.Debugf("Use: %s (%+v)", k, a)
+	}
+	return
 }

@@ -21,7 +21,7 @@ import (
 
 // Config holds all config vars
 type TestConfig struct {
-	PGFC Config      `group:"PGFC Options" namespace:"pgcall"`
+	PGFC Config           `group:"PGFC Options" namespace:"pgcall"`
 	PGXI pgxpgcall.Config `group:"PG Options" namespace:"db" env-namespace:"DB"`
 }
 

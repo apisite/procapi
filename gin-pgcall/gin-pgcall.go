@@ -13,7 +13,7 @@ import (
 	"gopkg.in/birkirb/loggers.v1"
 )
 
-// Caller allows to process and mock pgcall.Caller independantly
+// Caller allows to process and mock pgcall.Caller independently
 type Caller interface {
 	Call(r *http.Request, method string, args map[string]interface{}) (interface{}, error)
 }
