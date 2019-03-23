@@ -1,4 +1,4 @@
-// b2pgx is a bridge from pgcall to pgx
+// Package pgxpgcall is a pgx bindings for pgcall
 package pgxpgcall
 
 import (

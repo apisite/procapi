@@ -1,4 +1,3 @@
-// package pgbridge
 package pgxpgcall
 
 import (
