@@ -1,36 +1,11 @@
-// package pgbridge 
+// package pgbridge
 package pgxpgcall
 
 import (
-	"time"
-
 	"github.com/jackc/pgx" // gopkg failed because "internal" lib used
 	"github.com/pkg/errors"
 	"gopkg.in/birkirb/loggers.v1"
 )
-
-func New(cfg Config, log loggers.Contextual) (*DB, error) {
-	config, err := initPool(cfg, log)
-	if err != nil {
-		return nil, err
-	}
-	var dbh *pgx.ConnPool
-	for {
-		dbh, err = pgx.NewConnPool(*config)
-		if err == nil {
-			break
-		}
-		log.Warnf("DB connect failed: %v", err)
-		if cfg.Retry == 0 {
-			break
-		}
-		time.Sleep(time.Second * time.Duration(cfg.Retry)) // sleep & repeat
-	}
-	if err != nil {
-		return nil, err
-	}
-	return &DB{ConnPool: dbh}, nil
-}
 
 func initPool(cfg Config, log loggers.Contextual) (*pgx.ConnPoolConfig, error) {
 	dbConf, err := pgx.ParseEnvLibpq()

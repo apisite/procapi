@@ -9,35 +9,7 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-
-	"github.com/apisite/pgcall/pgiface"
 )
-
-// CallMapAny calls postgresql stored function without metadata usage
-func (srv *Server) CallMapAny(
-	method string,
-	args ...interface{},
-) ([]map[string]interface{}, error) {
-
-	inAssigns := make([]string, len(args))
-	for i := range args {
-		inAssigns[i] = fmt.Sprintf("$%d", i+1)
-	}
-	sql := fmt.Sprintf("select * from %s(%s)",
-		method,
-		strings.Join(inAssigns, ", "),
-	)
-	rows, err := srv.dbh.Query(sql, args...)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	result, err := Maps(rows)
-	if err != nil {
-		return nil, err
-	}
-	return result, nil
-}
 
 // Call postgresql stored function
 func (srv *Server) Call(r *http.Request,
@@ -93,8 +65,7 @@ func (srv *Server) Call(r *http.Request,
 			methodSpec.Func,
 			strings.Join(inAssigns, ", "),
 		)
-		ct, err := srv.dbh.Exec(sql, inVars...)
-		ctra, _ := ct.RowsAffected()
+		ctra, err := srv.dbh.Exec(sql, inVars...)
 		srv.log.Debugf("Rows affected: %d", ctra) // TODO: Header.Add ?
 		return nil, err
 	}
@@ -119,17 +90,12 @@ func (srv *Server) Call(r *http.Request,
 		strings.Join(inAssigns, ", "),
 	)
 	srv.log.Debugf("sql: %s, args: %v\n", sql, inVars)
-	rows, err := srv.dbh.Query(sql, inVars...)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
 	var rv interface{}
-
+	var err error
 	if methodSpec.IsStruct {
-		rv, err = Maps(rows)
+		rv, err = srv.dbh.QueryMaps(sql, inVars...)
 	} else {
-		rv, err = Slice(rows)
+		rv, err = srv.dbh.Query(sql, inVars...)
 	}
 	if err != nil {
 		return nil, err
@@ -142,45 +108,4 @@ func (srv *Server) Call(r *http.Request,
 		return &rv1[0], nil
 	}
 	return rv, nil
-}
-
-// Maps fetches []map[string]interface{} from query result
-func Maps(r pgiface.Rows) ([]map[string]interface{}, error) {
-	result := []map[string]interface{}{}
-	fields, _ := r.Columns()
-	for r.Next() {
-		row, err := r.Values()
-		if err != nil {
-			return nil, err
-		}
-		rowMap := map[string]interface{}{}
-		for k, v := range row {
-			rowMap[fields[k]] = v
-		}
-		result = append(result, rowMap)
-	}
-	if r.Err() != nil {
-		return nil, r.Err()
-	}
-	return result, nil
-}
-
-// Slice fetches []interface{} from query result
-func Slice(r pgiface.Rows) ([]interface{}, error) {
-	result := []interface{}{}
-	fields, _ := r.Columns()
-	if len(fields) != 1 {
-		return nil, errors.New("single column must be returned")
-	}
-	for r.Next() {
-		row, err := r.Values()
-		if err != nil {
-			return nil, err
-		}
-		result = append(result, row[0])
-	}
-	if r.Err() != nil {
-		return nil, r.Err()
-	}
-	return result, nil
 }

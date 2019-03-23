@@ -19,7 +19,7 @@
 [cc2]: https://codecov.io/gh/apisite/pgcall
 [gd1]: https://godoc.org/github.com/apisite/pgcall?status.svg
 [gd2]: https://godoc.org/github.com/apisite/pgcall
-[gc1]: https://goreportcard.com/badge/apisite/pgcall
+[gc1]: https://goreportcard.com/badge/github.com/apisite/tpl2x
 [gc2]: https://goreportcard.com/report/github.com/apisite/pgcall
 [gr1]: https://img.shields.io/github/release-pre/apisite/pgcall.svg
 [gr2]: https://github.com/apisite/pgcall/releases

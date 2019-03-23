@@ -40,7 +40,7 @@ export
 ## Show coverage
 coverage:
 	$(GO) generate
-	$(GO) test -coverprofile=coverage.out -v ./...
+	$(GO) test -coverprofile=coverage.out -race -covermode=atomic -v
 
 ## Show coverage
 coverage-db:
@@ -50,7 +50,19 @@ coverage-db:
 	DB_SCHEMA="pgfc_test,public" DB_LOGLEVEL=debug \
 	PGHOST=localhost PGPORT=$$PG_PORT_LOCAL PGDATABASE=pgfc_$$RUN_ID \
 	PGUSER=postgres PGPASSWORD=$$RUN_ID PGAPPNAME=pgfc \
-	$(GO) test -coverprofile=coverage.out -tags="db nocommon" -v ./...
+	$(GO) test -coverprofile=coverage.out -race -covermode=atomic -tags="db nocommon" -v
+
+## Show coverage
+coverage-pgx-db:
+	if [[ ! "$(PG_PORT_LOCAL)" ]] ; then  \
+	PG_PORT_LOCAL=$(shell docker inspect "test-pgfc-$(RUN_ID)" --format '{{ index (index (index .NetworkSettings.Ports "5432/tcp") 0) "HostPort" }}') ; \
+	fi
+	pushd pgx-pgcall ; \
+	DB_SCHEMA="pgfc_test,public" DB_LOGLEVEL=debug \
+	PGHOST=localhost PGPORT=$$PG_PORT_LOCAL PGDATABASE=pgfc_$$RUN_ID \
+	PGUSER=postgres PGPASSWORD=$$RUN_ID PGAPPNAME=pgfc \
+	$(GO) test -coverprofile=coverage.out -race -covermode=atomic -tags="db nocommon" -v ; \
+	popd
 
 ## Show package coverage in html (make cov-html PKG=counter)
 cov-html:

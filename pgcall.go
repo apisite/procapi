@@ -10,8 +10,6 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"gopkg.in/birkirb/loggers.v1"
-
-	"github.com/apisite/pgcall/pgiface"
 )
 
 // Config defines local application flags
@@ -59,9 +57,16 @@ type Method struct {
 	Out      *[]OutDef         `json:",omitempty"`
 }
 
+type DB interface {
+	QueryProc(method string, args ...interface{}) ([]map[string]interface{}, error)
+	Exec(sql string, arguments ...interface{}) (int64, error)
+	QueryMaps(sql string, args ...interface{}) ([]map[string]interface{}, error)
+	Query(sql string, args ...interface{}) ([]interface{}, error)
+}
+
 // Server holds RPC methods
 type Server struct {
-	dbh     pgiface.DB //*pgx.ConnPool
+	dbh     DB
 	config  Config
 	log     loggers.Contextual
 	methods *map[string]Method
@@ -82,7 +87,7 @@ type PGCallerConfig interface {
 */
 
 // New returns pgcall server object
-func New(cfg Config, log loggers.Contextual, dbh pgiface.DB) (*Server, error) {
+func New(cfg Config, log loggers.Contextual, dbh DB) (*Server, error) {
 	if dbh == nil {
 		return nil, errors.New("dbh must be not nil")
 	}
@@ -117,7 +122,7 @@ func (srv *Server) LoadMethods(nsp *string) error {
 
 	cfg := srv.config
 
-	m, err := srv.CallMapAny(cfg.IndexFunc)
+	m, err := srv.dbh.QueryProc(cfg.IndexFunc)
 	if err != nil {
 		return err
 	}
@@ -132,7 +137,7 @@ func (srv *Server) LoadMethods(nsp *string) error {
 			return err
 		}
 
-		args, err := srv.CallMapAny(cfg.InDefFunc, result.Name)
+		args, err := srv.dbh.QueryProc(cfg.InDefFunc, result.Name)
 		if err != nil {
 			return err
 		}
@@ -147,7 +152,7 @@ func (srv *Server) LoadMethods(nsp *string) error {
 		}
 		result.In = &inArgs
 
-		outs, err := srv.CallMapAny(cfg.OutDefFunc, result.Name)
+		outs, err := srv.dbh.QueryProc(cfg.OutDefFunc, result.Name)
 		if err != nil {
 			return err
 		}

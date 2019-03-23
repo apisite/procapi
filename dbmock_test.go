@@ -2,7 +2,7 @@
 
 package pgcall
 
-//go:generate mockgen -destination=generated_mock_test.go -package pgcall github.com/apisite/pgcall/pgiface Rows,Result,DB
+//go:generate mockgen -destination=generated_mock_test.go -package pgcall github.com/apisite/pgcall DB
 
 import (
 	"net/http"
@@ -75,23 +75,23 @@ func (ss *ServerSuite) prepServer(ctrl *gomock.Controller, m *MockDB) {
 	var allFields map[string][]string
 	helperLoadJSON(t, "fields.json", &allFields)
 
-	indexResp := NewMockRows(ctrl)
-	m.EXPECT().Query("select * from index()", []interface{}{}).
-		Return(indexResp, nil)
-	expectTable(indexResp, allFields["index"], indexRows)
+	//indexResp := NewMockRows(ctrl)
+	m.EXPECT().QueryProc("index", []interface{}{}).
+		Return(indexRows, nil)
+		//	expectTable(indexResp, allFields["index"], indexRows)
 
 	for _, method := range indexRows {
 		code := method["code"].(string)
 
-		argsResp := NewMockRows(ctrl)
-		m.EXPECT().Query("select * from func_args($1)", []interface{}{code}).
-			Return(argsResp, nil)
-		expectTable(argsResp, allFields["args"], allArgs[code])
+		//		argsResp := NewMockRows(ctrl)
+		m.EXPECT().QueryProc("func_args", []interface{}{code}).
+			Return(allArgs[code], nil)
+			//		expectTable(argsResp, allFields["args"], allArgs[code])
 
-		resResp := NewMockRows(ctrl)
-		m.EXPECT().Query("select * from func_result($1)", []interface{}{code}).
-			Return(resResp, nil)
-		expectTable(resResp, allFields["result"], allResult[code])
+			//	resResp := NewMockRows(ctrl)
+		m.EXPECT().QueryProc("func_result", []interface{}{code}).
+			Return(allResult[code], nil)
+		// expectTable(resResp, allFields["result"], allResult[code])
 
 	}
 
@@ -120,10 +120,10 @@ func (ss *ServerSuite) TestCall() {
 		{name: "Res", method: "func_result", args: map[string]interface{}{"code": "index"}, res: allResult["index"]},
 	}
 	// If tests will grow - move the following inside test loop
-	indexResp := NewMockRows(ctrl)
-	m.EXPECT().Query("select arg, type, anno from pgfc_test.func_result(a_code := $1)", []interface{}{"index"}).
-		Return(indexResp, nil)
-	expectTable(indexResp, allFields["result"], allResult["index"])
+	//	indexResp := NewMockRows(ctrl)
+	m.EXPECT().QueryMaps("select arg, type, anno from pgfc_test.func_result(a_code := $1)", []interface{}{"index"}).
+		Return(allResult["index"], nil)
+		//	expectTable(indexResp, allFields["result"], allResult["index"])
 
 	for _, tt := range tests {
 		rv, err := ss.srv.Call(ss.req, tt.method, tt.args)
@@ -134,26 +134,4 @@ func (ss *ServerSuite) TestCall() {
 	// Two debug lines about required arg + SQL
 	assert.Equal(ss.T(), 3, len(ss.hook.Entries))
 	//assert.Equal(ss.T(), logrus.DebugLevel, ss.hook.LastEntry().Message)
-}
-
-func expectTable(rows *MockRows, fields []string, maps []map[string]interface{}) {
-
-	rows.EXPECT().Columns().
-		Return(fields, nil)
-	for _, m := range maps {
-		var row []interface{}
-		for _, f := range fields {
-			row = append(row, m[f])
-		}
-		rows.EXPECT().Next().
-			Return(true)
-		rows.EXPECT().Values().
-			Return(row, nil)
-	}
-	rows.EXPECT().Next().
-		Return(false)
-	rows.EXPECT().Err().
-		Return(nil)
-	rows.EXPECT().Close()
-
 }
