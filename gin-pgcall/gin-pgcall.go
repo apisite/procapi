@@ -99,8 +99,8 @@ func (srv *Server) handler(bind binding.Binding) gin.HandlerFunc {
 	}
 }
 
-// SetFuncBlank appends function templates and not related to request functions to funcs
-func (srv *Server) SetFuncBlank(funcs template.FuncMap) {
+// SetProtoFuncs appends function templates and not related to request functions to funcs
+func (srv *Server) SetProtoFuncs(funcs template.FuncMap) {
 
 	funcs["makeSlice"] = func(param ...interface{}) interface{} {
 		return param
@@ -127,12 +127,15 @@ func (srv *Server) SetFuncBlank(funcs template.FuncMap) {
 	}
 }
 
+/*
+// This won't work because gin-gonic gives a struct with fields, not methods
 type RequestContext interface {
 	// Get(key string) (value interface{}, exists bool)
 }
+*/
 
-// SetFuncRequest appends related to request functions to funcs
-func (srv *Server) SetFuncRequest(funcs template.FuncMap, ctx *gin.Context) {
+// SetRequestFuncs appends related to request functions to funcs
+func (srv *Server) SetRequestFuncs(funcs template.FuncMap, ctx *gin.Context) {
 	funcs["param"] = func(key string) string { return ctx.Param(key) } // TODO: use original
 	funcs["api"] = func(method string, dict ...interface{}) (interface{}, error) {
 		//log.Debugf("Call for %s - Dict: %+v", method, dict)
