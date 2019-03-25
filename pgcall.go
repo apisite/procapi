@@ -1,9 +1,7 @@
-// Package pgcall holds pg functions call methods
+// Package pgcall implements a caller of postgresql stored functions, which intended to use via http and in templates.
 package pgcall
 
 import (
-	//	"fmt"
-	//	"net/http"
 	"strings"
 	"sync"
 
@@ -20,6 +18,7 @@ type Config struct {
 	ArgSyntax     string `long:"arg_syntax" default:":=" description:"Default named args syntax (:= or =>)"`
 	ArgTrimPrefix string `long:"arg_prefix" default:"a_" description:"Trim prefix from arg name"`
 
+	// TODO: Lim*
 	// LimArg  - если у ф-и нет этого аргумента, добавить в запрос `LIMIT LimDefault`
 	// LimDefault - лимит строк по умолчанию
 

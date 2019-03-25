@@ -6,7 +6,7 @@
 ---
 
 # pgcall
-> golang package for postgresql functions calling
+> Caller of postgresql stored functions, which intended to use via http and in templates
 
 [![GoDoc][gd1]][gd2]
  [![codecov][cc1]][cc2]

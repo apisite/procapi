@@ -1,4 +1,4 @@
-// Package pgxpgcall is a pgx bindings for pgcall
+// Package pgxpgcall implements a jackc/pgx backend for pgcall.
 package pgxpgcall
 
 import (

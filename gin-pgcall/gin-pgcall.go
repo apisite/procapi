@@ -1,4 +1,4 @@
-// Package ginpgcall is a gin bindings for pgcall
+// Package ginpgcall implements a gin frontend for pgcall.
 package ginpgcall
 
 import (
