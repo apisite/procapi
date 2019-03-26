@@ -64,7 +64,7 @@ func (ss *ServerSuite) TestHandler() {
 	allFuncs := template.FuncMap{}
 
 	s := ss.srv
-	s.SetFuncBlank(allFuncs)
+	s.SetProtoFuncs(allFuncs)
 	s.Route("/rpc", r)
 
 	m := ss.mock
@@ -95,7 +95,7 @@ func (ss *ServerSuite) TestFunc() {
 		"title": strings.Title,
 	}
 	s := ss.srv
-	s.SetFuncBlank(funcMap)
+	s.SetProtoFuncs(funcMap)
 
 	/*
 	   	const templateText = `
