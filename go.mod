@@ -3,8 +3,6 @@ module github.com/apisite/pgcall
 go 1.12
 
 require (
-	github.com/apisite/pgcall/gin-pgcall v0.0.0-20190317232215-4d4c865ec41f // indirect
-	github.com/apisite/pgcall/pgx-pgcall v0.0.0
 	github.com/birkirb/loggers-mapper-logrus v0.0.0-20180326232643-461f2d8e6f72
 	github.com/blang/vfs v1.0.0 // indirect
 	github.com/daaku/go.zipexe v1.0.0 // indirect
@@ -20,5 +18,3 @@ require (
 	github.com/stretchr/testify v1.3.0
 	gopkg.in/birkirb/loggers.v1 v1.1.0
 )
-
-replace github.com/apisite/pgcall/pgx-pgcall v0.0.0 => ./pgx-pgcall
