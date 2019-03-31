@@ -9,10 +9,19 @@ steps:
       - go test -v -race -coverprofile=coverage.out -covermode=atomic ./... ./pgx-pgcall/... ./gin-pgcall/...
       - go vet ./... ./pgx-pgcall/... ./gin-pgcall/...
 
+  - name: create-db
+    image: postgres:11.2-alpine
+    commands:
+    - pwd
+    - sleep 15
+    - until [[ pg_isready -q -U postgres -h database ]] ; do sleep 1 ; echo -n "." ; done
+    - psql -U postgres -d test -h database -vWORKDIR=`pwd`/testdata -f testdata/schema.sql
+
   - name: testing-db
     image: golang:1.12
     pull: true
     commands:
+      - sleep 15
       - go test -v -race -coverprofile=coverage.out -covermode=atomic -tags="db nocommon" ./... ./pgx-pgcall/... ./gin-pgcall/...
       - curl -s https://codecov.io/bash | bash
     environment:
@@ -33,3 +42,6 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_DB: test
+      WORKDIR: /docker-entrypoint-initdb.d
+ \
+	-v $(shell pwd)/testdata:/docker-entrypoint-initdb.d $$PG_IMAGE
