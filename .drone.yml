@@ -1,0 +1,35 @@
+kind: pipeline
+name: default
+
+steps:
+  - name: testing
+    image: golang:1.12
+    pull: true
+    commands:
+      - go test -v -race -coverprofile=coverage.out -covermode=atomic ./... ./pgx-pgcall/... ./gin-pgcall/...
+      - go vet ./... ./pgx-pgcall/... ./gin-pgcall/...
+
+  - name: testing-db
+    image: golang:1.12
+    pull: true
+    commands:
+      - go test -v -race -coverprofile=coverage.out -covermode=atomic -tags="db nocommon" ./... ./pgx-pgcall/... ./gin-pgcall/...
+      - curl -s https://codecov.io/bash | bash
+    environment:
+      CODECOV_TOKEN:
+        from_secret: my-codecov-token
+      DB_SCHEMA:   pgfc_test,public
+      DB_LOGLEVEL: debug
+      PGHOST:      database
+      PGDATABASE:  test
+      PGUSER:      postgres
+      PGAPPNAME:   pgcall
+
+services:
+  - name: database
+    image: postgres:11.2-alpine
+    ports:
+    - 5432
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: test
