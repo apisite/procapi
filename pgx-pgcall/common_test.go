@@ -36,13 +36,14 @@ func TestSuite(t *testing.T) {
 func (ss *ServerSuite) TestNewServerError() {
 	ss.hook.Reset()
 	tests := []struct {
-		name  string
-		env   string
-		value string
-		err   string
+		name   string
+		env    string
+		value  string
+		err    string
+		wantEq bool
 	}{
-		{name: "BadPortSyntax", env: "PGPORT", value: "GoLangCode", err: "Unable to parse environment: strconv.ParseUint: parsing \"GoLangCode\": invalid syntax"},
-		{name: "BadPortValue", env: "PGPORT", value: "1", err: "dial tcp 127.0.0.1:1: connect: connection refused"},
+		{name: "BadPortSyntax", env: "PGPORT", value: "GoLangCode", wantEq: true, err: "Unable to parse environment: strconv.ParseUint: parsing \"GoLangCode\": invalid syntax"},
+		{name: "BadPortValue", env: "PGPORT", value: "1", err: "connect: connection refused"},
 	}
 
 	cfg := Config{LogLevel: "none", Workers: 1}
@@ -54,7 +55,11 @@ func (ss *ServerSuite) TestNewServerError() {
 		}()
 		_, err := New(cfg, ss.log)
 		require.NotNil(ss.T(), err)
-		assert.Equal(ss.T(), tt.err, err.Error())
+		if tt.wantEq {
+			assert.Equal(ss.T(), tt.err, err.Error())
+		} else {
+			assert.Contains(ss.T(), tt.err, err.Error())
+		}
 	}
 
 	assert.Equal(ss.T(), 1, len(ss.hook.Entries))
