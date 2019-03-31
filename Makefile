@@ -35,7 +35,14 @@ export CONFIG_DEF
 -include $(CFG)
 export
 
+.PHONY: gen
+
 # ------------------------------------------------------------------------------
+
+## update generated mocks
+# by https://github.com/golang/mock/
+gen:
+	$(GO) generate
 
 ## run linter
 lint:
@@ -45,7 +52,6 @@ lint:
 
 ## Show coverage
 cov:
-	$(GO) generate
 	$(GO) test -coverprofile=coverage.out -race -covermode=atomic -v $(GOSOURCES)
 
 ## Show coverage
@@ -110,6 +116,7 @@ test-docker-run: find-port
 	-v $(shell pwd)/tmp-db:/var/lib/postgresql/data \
 	-v $(shell pwd)/testdata:/docker-entrypoint-initdb.d $$PG_IMAGE
 
+## Run psql
 psql:
 	@docker exec -it test-pgfc-$$RUN_ID psql -U postgres -d pgfc_$$RUN_ID
 

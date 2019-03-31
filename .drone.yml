@@ -6,7 +6,6 @@ steps:
     image: golang:1.12
     pull: true
     commands:
-      - go generate . ./gin-pgcall
       - go test -v -race -coverprofile=coverage.out -covermode=atomic ./... ./pgx-pgcall/... ./gin-pgcall/...
       - go vet ./... ./pgx-pgcall/... ./gin-pgcall/...
 
