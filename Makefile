@@ -4,6 +4,7 @@ SHELL       = /bin/bash
 CFG         = .env
 GO         ?= go
 SOURCES    ?= *.go *-pgcall/*.go
+GOSOURCES  ?= ./... ./pgx-pgcall/... ./gin-pgcall/...
 
 CODECOV_KEY =
 
@@ -36,47 +37,37 @@ export
 
 # ------------------------------------------------------------------------------
 
+## run linter
+lint:
+	golangci-lint run $(GOSOURCES)
+
+# ------------------------------------------------------------------------------
+
 ## Show coverage
-coverage:
+cov:
 	$(GO) generate
-	$(GO) test -coverprofile=coverage.out -race -covermode=atomic -v ./...
+	$(GO) test -coverprofile=coverage.out -race -covermode=atomic -v $(GOSOURCES)
 
 ## Show coverage
-coverage-db:
+cov-db:
 	if [[ ! "$(PG_PORT_LOCAL)" ]] ; then  \
 	PG_PORT_LOCAL=$(shell docker inspect "test-pgfc-$(RUN_ID)" --format '{{ index (index (index .NetworkSettings.Ports "5432/tcp") 0) "HostPort" }}') ; \
 	fi
 	DB_SCHEMA="pgfc_test,public" DB_LOGLEVEL=debug \
 	PGHOST=localhost PGPORT=$$PG_PORT_LOCAL PGDATABASE=pgfc_$$RUN_ID \
 	PGUSER=postgres PGPASSWORD=$$RUN_ID PGAPPNAME=pgfc \
-	$(GO) test -coverprofile=coverage.out -race -covermode=atomic -tags="db nocommon" -v
-
-## Show coverage
-coverage-pgx-db:
-	if [[ ! "$(PG_PORT_LOCAL)" ]] ; then  \
-	PG_PORT_LOCAL=$(shell docker inspect "test-pgfc-$(RUN_ID)" --format '{{ index (index (index .NetworkSettings.Ports "5432/tcp") 0) "HostPort" }}') ; \
-	fi
-	pushd pgx-pgcall ; \
-	DB_SCHEMA="pgfc_test,public" DB_LOGLEVEL=debug \
-	PGHOST=localhost PGPORT=$$PG_PORT_LOCAL PGDATABASE=pgfc_$$RUN_ID \
-	PGUSER=postgres PGPASSWORD=$$RUN_ID PGAPPNAME=pgfc \
-	$(GO) test -coverprofile=coverage.out -race -covermode=atomic -tags="db nocommon" -v ; \
-	popd
+	$(GO) test -coverprofile=coverage.out -race -covermode=atomic -tags="db nocommon" -v $(GOSOURCES)
 
 ## Show package coverage in html
 cov-html:
 	$(GO) tool cover -html=coverage.out
 
-coverage-cmp:
-	$(MAKE) -s coverage-db
+cov-cmp:
+	$(MAKE) -s cov-db
 	@sort < coverage.out > coverage-db.out
-	$(MAKE) -s coverage
+	$(MAKE) -s cov
 	@sort < coverage.out > coverage-mock.out
 	@diff -c0 coverage-mock.out coverage-db.out > coverage.diff &&  echo "No differences" || less coverage.diff
-
-## Run lint
-lint:
-	golint ./...
 
 ## Format go sources
 fmt:
@@ -87,7 +78,6 @@ vet:
 	$(GO) vet *.go
 	$(GO) vet pgx-pgcall/*.go
 	$(GO) vet gin-pgcall/*.go
-
 
 # ------------------------------------------------------------------------------
 
@@ -120,11 +110,8 @@ test-docker-run: find-port
 	-v $(shell pwd)/tmp-db:/var/lib/postgresql/data \
 	-v $(shell pwd)/testdata:/docker-entrypoint-initdb.d $$PG_IMAGE
 
-#	-v $(shell pwd)/t/initdb:/docker-entrypoint-initdb.d $$PG_IMAGE
-
-#go run main.go --db_connect 'postgres:UHFbuj0lZSpED6@localhost:32793/pgfc_UHFbuj0lZSpED6?sslmode=disable' --db_schema 'pgfc_uhfbuj0lzsped6,public'
-
-#  PGFC_CONNECT='postgres:UHFbuj0lZSpED6@localhost:32793/pgfc_UHFbuj0lZSpED6?sslmode=disable' DB_SCHEMA='pgfc_uhfbuj0lzsped6,public' go test
+psql:
+	@docker exec -it test-pgfc-$$RUN_ID psql -U postgres -d pgfc_$$RUN_ID
 
 # Stop postgresql via docker
 test-docker-stop:
