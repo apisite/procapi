@@ -65,8 +65,8 @@ func (ss *ServerSuite) TestHandler() {
 
 	s := ss.srv
 	s.SetProtoFuncs(allFuncs)
-	s.Route("/rpc", r)
-
+	err := s.Route("/rpc", r)
+	require.NoError(ss.T(), err)
 	m := ss.mock
 
 	req, _ := http.NewRequest("GET", "/rpc/index", nil)
@@ -129,8 +129,8 @@ func (ss *ServerSuite) TestFunc() {
 	*/
 	out := `
 [a b]
-&amp;map[a:1 b:2]
+map[a:1 b:2]
 `
-	assert.Equal(ss.T(), data.String(), out)
+	assert.Equal(ss.T(), out, data.String())
 
 }

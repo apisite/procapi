@@ -18,7 +18,7 @@ func (srv *Server) Call(r *http.Request,
 	args map[string]interface{},
 ) (interface{}, error) {
 	// Lookup method.
-	methodSpec, ok := (*srv.Methods())[method]
+	methodSpec, ok := srv.Methods()[method]
 	if !ok {
 		return nil, (&CallError{code: NotFound}).addContext("name", method)
 	}
@@ -48,7 +48,7 @@ func (srv *Server) Call(r *http.Request,
 
 	var outCols []string
 	if methodSpec.Out != nil {
-		for _, v := range *methodSpec.Out {
+		for _, v := range methodSpec.Out {
 			outCols = append(outCols, v.Name)
 		}
 	}
@@ -88,7 +88,7 @@ func (srv *Server) Call(r *http.Request,
 
 func prepareArgs(
 	log loggers.Contextual,
-	inDef *map[string]InDef,
+	inDef map[string]InDef,
 	args map[string]interface{},
 	argSyntax string,
 ) (
@@ -96,8 +96,8 @@ func prepareArgs(
 	inAssigns []string,
 	inVars []interface{},
 ) {
-	log.Debugf("IN args: %+v", *inDef)
-	for k, v := range *inDef {
+	log.Debugf("IN args: %+v", inDef)
+	for k, v := range inDef {
 		a, ok := args[k]
 		if !ok {
 			if v.Required {

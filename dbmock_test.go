@@ -115,7 +115,7 @@ func (ss *ServerSuite) TestCall() {
 		method string
 		args   map[string]interface{}
 		res    []map[string]interface{}
-		err    string
+		//		err    string
 	}{
 		{name: "Res", method: "func_result", args: map[string]interface{}{"code": "index"}, res: allResult["index"]},
 	}

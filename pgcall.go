@@ -43,17 +43,17 @@ type OutDef struct {
 
 // Method holds method attributes
 type Method struct {
-	Name     string            `db:"code"`
-	Class    string            `db:"nspname"`
-	Func     string            `db:"proname"`
-	Anno     string            `db:"anno"`
-	IsRO     bool              `db:"is_ro"`
-	IsSet    bool              `db:"is_set"`
-	IsStruct bool              `db:"is_struct"`
-	Sample   *string           `db:"sample" json:",omitempty"`
-	Result   *string           `db:"result" json:",omitempty"`
-	In       *map[string]InDef `json:",omitempty"`
-	Out      *[]OutDef         `json:",omitempty"`
+	Name     string           `db:"code"`
+	Class    string           `db:"nspname"`
+	Func     string           `db:"proname"`
+	Anno     string           `db:"anno"`
+	IsRO     bool             `db:"is_ro"`
+	IsSet    bool             `db:"is_set"`
+	IsStruct bool             `db:"is_struct"`
+	Sample   *string          `db:"sample" json:",omitempty"`
+	Result   *string          `db:"result" json:",omitempty"`
+	In       map[string]InDef `json:",omitempty"`
+	Out      []OutDef         `json:",omitempty"`
 }
 
 type DB interface {
@@ -68,8 +68,8 @@ type Server struct {
 	dbh     DB
 	config  Config
 	log     loggers.Contextual
-	methods *map[string]Method
-	mux     sync.RWMutex
+	methods map[string]Method
+	mx      sync.RWMutex
 }
 
 /*
@@ -99,17 +99,17 @@ func New(cfg Config, log loggers.Contextual, dbh DB) (*Server, error) {
 }
 
 // Methods returns methods map
-func (srv *Server) Methods() *map[string]Method {
-	srv.mux.RLock()
-	defer srv.mux.RUnlock()
+func (srv *Server) Methods() map[string]Method {
+	srv.mx.RLock()
+	defer srv.mx.RUnlock()
 	return srv.methods
 }
 
 // MethodIsRO returns true if method exists and read-only
 func (srv *Server) MethodIsRO(method string) bool {
-	srv.mux.RLock()
-	methods := *srv.methods
-	srv.mux.RUnlock()
+	srv.mx.RLock()
+	defer srv.mx.RUnlock()
+	methods := srv.methods
 	m, ok := methods[method]
 	if !ok {
 		return false
@@ -149,7 +149,7 @@ func (srv *Server) LoadMethods(nsp *string) error {
 			}
 			inArgs[strings.TrimPrefix(r.Name, cfg.ArgTrimPrefix)] = r
 		}
-		result.In = &inArgs
+		result.In = inArgs
 
 		outs, err := srv.dbh.QueryProc(cfg.OutDefFunc, result.Name)
 		if err != nil {
@@ -164,13 +164,13 @@ func (srv *Server) LoadMethods(nsp *string) error {
 			}
 			outArgs = append(outArgs, out)
 		}
-		result.Out = &outArgs
+		result.Out = outArgs
 
 		re[result.Name] = result
 	}
-	srv.mux.Lock()
-	srv.methods = &re
-	srv.mux.Unlock()
+	srv.mx.Lock()
+	srv.methods = re
+	srv.mx.Unlock()
 	return nil
 
 	/*

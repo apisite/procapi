@@ -117,7 +117,7 @@ func (srv *Server) SetProtoFuncs(funcs template.FuncMap) {
 		return template.HTML(out), err
 	}
 	funcs["param"] = func(key string) string { return "" }
-	funcs["get"] = func(keys ...string) *map[string]interface{} { return nil }
+	funcs["get"] = func(keys ...string) map[string]interface{} { return nil }
 	funcs["item"] = func(in map[string][]string, key string) *string {
 		val, ok := in[key]
 		if !ok {
@@ -143,13 +143,13 @@ func (srv *Server) SetRequestFuncs(funcs template.FuncMap, ctx *gin.Context) {
 		if err != nil {
 			return nil, err
 		}
-		return srv.Call(ctx.Request, method, *argsMap)
+		return srv.Call(ctx.Request, method, argsMap)
 	}
 	funcs["api_map"] = func(method string, args map[string]interface{}) (interface{}, error) {
 		//log.Debugf("Call apimap for %s - Dict: %+v", method, args)
 		return srv.Call(ctx.Request, method, args)
 	}
-	funcs["get"] = func(keys ...string) *map[string]interface{} {
+	funcs["get"] = func(keys ...string) map[string]interface{} {
 		rv := map[string]interface{}{}
 		for _, k := range keys {
 			val, ok := ctx.Request.URL.Query()[k]
@@ -158,16 +158,16 @@ func (srv *Server) SetRequestFuncs(funcs template.FuncMap, ctx *gin.Context) {
 			}
 			rv[k] = val[0]
 		}
-		return &rv
+		return rv
 	}
 }
 
 // MakeMap makes a map from key,value pairs
-func MakeMap(args ...interface{}) (*map[string]interface{}, error) {
+func MakeMap(args ...interface{}) (map[string]interface{}, error) {
 	if len(args) == 1 {
 		// already map
 		a := args[0].(map[string]interface{})
-		return &a, nil
+		return a, nil
 	}
 	if len(args)%2 != 0 {
 		// log.Printf("Args: %+v", args)
@@ -182,5 +182,5 @@ func MakeMap(args ...interface{}) (*map[string]interface{}, error) {
 		}
 		dict[key] = args[i+1]
 	}
-	return &dict, nil
+	return dict, nil
 }

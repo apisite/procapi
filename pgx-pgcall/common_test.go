@@ -69,7 +69,6 @@ func (ss *ServerSuite) TestLog() {
 	tests := []struct {
 		name  string
 		level pgx.LogLevel
-		data  map[string]interface{}
 	}{
 		{name: "LogLevelTrace", level: pgx.LogLevelTrace},
 		{name: "LogLevelDebug", level: pgx.LogLevelDebug},

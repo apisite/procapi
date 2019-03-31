@@ -17,7 +17,7 @@ func (ss *ServerSuite) TestMethods() {
 	var mg map[string]Method
 
 	helperLoadJSON(ss.T(), "methods.golden.json", &mg)
-	assert.Equal(ss.T(), mg, *m)
+	assert.Equal(ss.T(), mg, m)
 }
 
 func (ss *ServerSuite) TestMethodIsRO() {

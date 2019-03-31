@@ -3,8 +3,6 @@
 package pgxpgcall
 
 import (
-	"github.com/jackc/pgx"
-
 	mapper "github.com/birkirb/loggers-mapper-logrus"
 	"github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus/hooks/test"
@@ -16,7 +14,6 @@ import (
 
 type ServerSuite struct {
 	suite.Suite
-	srv  *pgx.ConnPool
 	hook *test.Hook
 	log  loggers.Contextual
 }

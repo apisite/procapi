@@ -26,5 +26,4 @@ func helperLoadJSON(t *testing.T, name string, data interface{}) {
 	err = json.Unmarshal(bytes, &data)
 	require.NoError(t, err)
 
-	return
 }
