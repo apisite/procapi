@@ -1,20 +1,23 @@
 <p align="center">
-  <a href="README.md">English</a> |
+  <a href="README.md#apisiteapicall">English</a> |
   <span>Pусский</span>
 </p>
 
 ---
 
-# apisite/apimap
+# apisite/apicall
 > golang - библиотека для построения API на основе map.
 
 [![GoDoc][gd1]][gd2]
  [![codecov][cc1]][cc2]
+ [![Build Status][bs1]][bs2]
  [![GoCard][gc1]][gc2]
  [![GitHub Release][gr1]][gr2]
  [![GitHub code size in bytes][sz]]()
  [![GitHub license][gl1]][gl2]
 
+[bs1]: https://cloud.drone.io/api/badges/apisite/pgcall/status.svg
+[bs2]: https://cloud.drone.io/apisite/pgcall
 [cc1]: https://codecov.io/gh/apisite/pgcall/branch/master/graph/badge.svg
 [cc2]: https://codecov.io/gh/apisite/pgcall
 [gd1]: https://godoc.org/github.com/apisite/pgcall?status.svg

@@ -13,7 +13,7 @@ steps:
     image: postgres:11.2-alpine
     commands:
     - until pg_isready -q -U postgres -h database ; do sleep 1 ; echo -n "." ; done
-    - psql -U postgres -d test -h database -f testdata/schema.sql
+    - psql -U postgres --single-transaction -d test -h database -f testdata/schema.sql
     environment:
       WORKDIR: /drone/src/testdata
 
