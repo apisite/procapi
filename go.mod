@@ -14,3 +14,8 @@ require (
 	github.com/stretchr/testify v1.3.0
 	gopkg.in/birkirb/loggers.v1 v1.1.0
 )
+
+replace (
+	github.com/apisite/pgcall/gin-pgcall => ./gin-pgcall
+	github.com/apisite/pgcall/pgx-pgcall => ./pgx-pgcall
+)

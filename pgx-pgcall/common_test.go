@@ -58,13 +58,13 @@ func (ss *ServerSuite) TestNewServerError() {
 		if tt.wantEq {
 			assert.Equal(ss.T(), tt.err, err.Error())
 		} else {
-			assert.Contains(ss.T(), tt.err, err.Error())
+			assert.Contains(ss.T(), err.Error(), tt.err)
 		}
 	}
 
 	assert.Equal(ss.T(), 1, len(ss.hook.Entries))
 	assert.Equal(ss.T(), logrus.WarnLevel, ss.hook.LastEntry().Level)
-	assert.Equal(ss.T(), "DB connect failed: "+tests[1].err, ss.hook.LastEntry().Message)
+	assert.Contains(ss.T(), ss.hook.LastEntry().Message, "DB connect failed: ")
 
 }
 
