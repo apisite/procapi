@@ -3,7 +3,8 @@ module github.com/apisite/pgcall
 go 1.12
 
 require (
-	github.com/apisite/pgcall/gin-pgcall v0.0.0-20190331214822-05f2796f5f9c // indirect
+	github.com/apisite/pgcall/gin-pgcall v0.0.0-20190331220424-b9c86761817f // indirect
+	github.com/apisite/pgcall/pgx-pgcall v0.0.0-20190331220424-b9c86761817f
 	github.com/birkirb/loggers-mapper-logrus v0.0.0-20180326232643-461f2d8e6f72
 	github.com/golang/mock v1.2.0
 	github.com/jessevdk/go-flags v1.4.0
