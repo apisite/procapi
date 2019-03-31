@@ -5,7 +5,7 @@
 
 ---
 
-# apimap
+# apisite/apimap
 > golang - библиотека для построения API на основе map.
 
 [![GoDoc][gd1]][gd2]
@@ -80,5 +80,5 @@ func call(method string, args map[string]interface{}) ([]map[string]interface{},
 
 ### gin-pgcall
 
-Добавляет в gin маршрутизацию для прямого вызова фнкций API и дополняет funcMap функциями доступа к API из шаблонов.
+Добавляет в gin маршрутизацию для прямого вызова функций API и дополняет funcMap функциями доступа к API из шаблонов.
 Для работы с pgcall используется интерфейс [ginpgcall.Caller](https://godoc.org/github.com/apisite/pgcall/gin-pgcall#Caller)
