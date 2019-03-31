@@ -42,6 +42,3 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_DB: test
-      WORKDIR: /docker-entrypoint-initdb.d
- \
-	-v $(shell pwd)/testdata:/docker-entrypoint-initdb.d $$PG_IMAGE
