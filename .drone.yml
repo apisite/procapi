@@ -12,10 +12,8 @@ steps:
   - name: create-db
     image: postgres:11.2-alpine
     commands:
-    - pwd
-    - sleep 15
-    - until [[ pg_isready -q -U postgres -h database ]] ; do sleep 1 ; echo -n "." ; done
-    - psql -U postgres -d test -h database -vWORKDIR=`pwd`/testdata -f testdata/schema.sql
+    - until pg_isready -q -U postgres -h database ; do sleep 1 ; echo -n "." ; done
+    - psql -U postgres -d test -h database -vWORKDIR=/drone/src/testdata -f testdata/schema.sql
 
   - name: testing-db
     image: golang:1.12
