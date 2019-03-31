@@ -1,6 +1,6 @@
 <p align="center">
   <span>English</span> |
-  <a href="docs/ru/README.md#pgcall">Pусский</a>
+  <a href="README.ru.md#pgcall">Pусский</a>
 </p>
 
 ---

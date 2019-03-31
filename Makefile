@@ -39,7 +39,7 @@ export
 ## Show coverage
 coverage:
 	$(GO) generate
-	$(GO) test -coverprofile=coverage.out -race -covermode=atomic -v
+	$(GO) test -coverprofile=coverage.out -race -covermode=atomic -v ./...
 
 ## Show coverage
 coverage-db:
