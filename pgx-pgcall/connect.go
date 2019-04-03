@@ -11,15 +11,11 @@ func initPool(cfg Config, log loggers.Contextual) (*pgx.ConnPoolConfig, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "Unable to parse environment")
 	}
-	/*
-		//	TODO:
-		//	pgx-pgcall/connect.go:18: cannot use level (type pgx.LogLevel) as type int in assignment
-	*/
 	level, err := pgx.LogLevelFromString(cfg.LogLevel)
 	if err != nil {
 		return nil, errors.Wrap(err, "Unable to parse log level "+cfg.LogLevel)
 	}
-	dbConf.LogLevel = level
+	dbConf.LogLevel = int(level)
 	dbConf.Logger = Logger{l: log}
 
 	config := pgx.ConnPoolConfig{
