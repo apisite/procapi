@@ -25,7 +25,7 @@ func checkTestUpdate(file string, data interface{}) {
 	fmt.Printf("*** Writing %s\n", p.Name())
 	out, err := json.MarshalIndent(data, "", "  ")
 	check(err)
-	_, err = p.WriteString(string(out)) //ioutil.WriteFile(p, out, os.FileMode(mode))
+	_, err = p.WriteString(string(out) + "\n") //ioutil.WriteFile(p, out, os.FileMode(mode))
 	check(err)
 }
 

@@ -12,21 +12,23 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-func (ss *ServerSuite) TestMethods() {
-	m := ss.srv.Methods()
-	var mg map[string]Method
+func (ss *ServerSuite) TestMethod() {
+	var mGot, mWant []Method
+	cfg := ss.cfg.Call
+	for _, name := range []string{cfg.IndexFunc, cfg.InDefFunc, cfg.OutDefFunc} {
+		if m, ok := ss.srv.Method(name); ok {
+			mGot = append(mGot, m)
+		}
+	}
 
-	helperLoadJSON(ss.T(), "methods.golden.json", &mg)
-	checkTestUpdate("methods.golden.json", m)
-	assert.Equal(ss.T(), mg, m)
+	checkTestUpdate("methods.golden.json", mGot)
+	helperLoadJSON(ss.T(), "methods.golden.json", &mWant)
+	assert.Equal(ss.T(), mWant, mGot)
 }
 
 func (ss *ServerSuite) TestMethodIsRO() {
-	assert.Equal(ss.T(), true, ss.srv.MethodIsRO("func_result"))
-}
-
-func (ss *ServerSuite) TestMethodIsROFalse() {
-	assert.Equal(ss.T(), false, ss.srv.MethodIsRO("unknown"))
+	m, ok := ss.srv.Method(ss.cfg.Call.OutDefFunc)
+	assert.True(ss.T(), ok && m.IsRO)
 }
 
 func (ss *ServerSuite) TestCallError() {
@@ -42,8 +44,8 @@ func (ss *ServerSuite) TestCallError() {
 		args   map[string]interface{}
 		err    string
 	}{
-		{name: "RequiredArgMissed", method: "func_result", err: "Required arg(s) missed (map[args:[code]])"},
-		{name: "RequiredArgMissedRef", method: "func_result", args: a, err: "Required arg(s) missed (map[args:[code]])"},
+		{name: "RequiredArgMissed", method: ss.cfg.Call.OutDefFunc, err: "Required arg(s) missed (map[args:[code]])"},
+		{name: "RequiredArgMissedRef", method: ss.cfg.Call.OutDefFunc, args: a, err: "Required arg(s) missed (map[args:[code]])"},
 		{name: "UnknownMethod", method: "unknown", err: "Method not found (map[name:unknown])"},
 	}
 

@@ -19,9 +19,13 @@ import (
 	"github.com/golang/mock/gomock"
 )
 
+// Config holds all config vars
+type TestConfig struct {
+	Call Config `group:"PGFC Options" namespace:"pgcall"`
+}
 type ServerSuite struct {
 	suite.Suite
-	cfg  Config
+	cfg  TestConfig
 	srv  *Server
 	hook *test.Hook
 	req  *http.Request
@@ -31,7 +35,7 @@ type ServerSuite struct {
 func (ss *ServerSuite) SetupSuite() {
 
 	// Fill config with default values
-	p := flags.NewParser(&ss.cfg, flags.Default)
+	p := flags.NewParser(&ss.cfg.Call, flags.Default)
 	_, err := p.ParseArgs([]string{})
 	require.NoError(ss.T(), err)
 
@@ -51,7 +55,7 @@ func (ss *ServerSuite) SetupSuite() {
 
 	ss.prepServer(ctrl, m)
 
-	s, err := New(ss.cfg, log, m)
+	s, err := New(ss.cfg.Call, log, m)
 	require.NoError(ss.T(), err)
 
 	ss.srv = s

@@ -98,23 +98,12 @@ func New(cfg Config, log loggers.Contextual, dbh DB) (*Server, error) {
 	return &srv, nil
 }
 
-// Methods returns methods map
-func (srv *Server) Methods() map[string]Method {
+// Method returns method by name
+func (srv *Server) Method(name string) (Method, bool) {
 	srv.mx.RLock()
 	defer srv.mx.RUnlock()
-	return srv.methods
-}
-
-// MethodIsRO returns true if method exists and read-only
-func (srv *Server) MethodIsRO(method string) bool {
-	srv.mx.RLock()
-	defer srv.mx.RUnlock()
-	methods := srv.methods
-	m, ok := methods[method]
-	if !ok {
-		return false
-	}
-	return m.IsRO
+	m, ok := srv.methods[name]
+	return m, ok
 }
 
 func (srv *Server) LoadMethods(nsp *string) error {

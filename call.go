@@ -18,7 +18,7 @@ func (srv *Server) Call(r *http.Request,
 	args map[string]interface{},
 ) (interface{}, error) {
 	// Lookup method.
-	methodSpec, ok := srv.Methods()[method]
+	methodSpec, ok := srv.Method(method)
 	if !ok {
 		return nil, (&CallError{code: NotFound}).addContext("name", method)
 	}
