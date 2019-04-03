@@ -121,7 +121,7 @@ func (ss *ServerSuite) TestCall() {
 	}
 	// If tests will grow - move the following inside test loop
 	//	indexResp := NewMockRows(ctrl)
-	m.EXPECT().QueryMaps("select arg, type, anno from pgfc_test.func_result(a_code := $1)", []interface{}{"index"}).
+	m.EXPECT().QueryMaps("select arg, type, anno from rpc.func_result(a_code := $1)", []interface{}{"index"}).
 		Return(allResult["index"], nil)
 		//	expectTable(indexResp, allFields["result"], allResult["index"])
 

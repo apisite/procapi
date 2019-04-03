@@ -81,7 +81,7 @@ func (srv *Server) Call(r *http.Request,
 		if len(rv1) != 1 {
 			return nil, errors.New("single row must be returned")
 		}
-		return &rv1[0], nil
+		return rv1[0], nil
 	}
 	return rv, nil
 }
@@ -111,12 +111,13 @@ func prepareArgs(
 			if reflect.ValueOf(a).IsNil() {
 				if v.Required {
 					missedArgs = append(missedArgs, k)
+					continue
 				} else {
-					log.Debugf("Skip missed ref of %s", k)
+					log.Debugf("Use NULL for empty ref of %s", k)
 				}
-				continue
+			} else {
+				a = reflect.ValueOf(a).Elem().Interface() // dereference ptr
 			}
-			a = reflect.ValueOf(a).Elem().Interface() // dereference ptr
 		}
 		inAssigns = append(inAssigns, fmt.Sprintf("%s %s $%d", v.Name, argSyntax, len(inAssigns)+1))
 		inVars = append(inVars, a)

@@ -1,4 +1,5 @@
 // Package pgxpgcall implements a jackc/pgx backend for pgcall.
+// pgx was choosen for its postgresql type support
 package pgxpgcall
 
 import (
@@ -7,6 +8,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx"
+	"github.com/jackc/pgx/pgtype"
 	"github.com/pkg/errors"
 	"gopkg.in/birkirb/loggers.v1"
 )
@@ -15,6 +17,7 @@ import (
 type Config struct {
 	Schema   string `long:"schema" env:"SCHEMA" default:"" description:"Database functions schema name or comma delimited list"`
 	LogLevel string `long:"loglevel" env:"LOGLEVEL" default:"error" description:"DB logging level (trace|debug|info|warn|error|none)"`
+	TimeZone string `long:"tz" env:"TZ" default:"Europe/Moscow" description:"Database connection timezone"`
 	Retry    int    `long:"retry" default:"5" description:"Retry db connect after this interfal (secs), No retry if 0"`
 	Workers  int    `long:"workers" default:"2" description:"DB connections count"`
 }
@@ -65,15 +68,15 @@ func (db *DB) QueryProc(method string, args ...interface{}) ([]map[string]interf
 		strings.Join(inAssigns, ", "),
 	)
 	return db.QueryMaps(sql, args...)
-}
-
-func columns(r *pgx.Rows) ([]string, error) {
-	fields := r.FieldDescriptions()
-	result := make([]string, len(fields))
-	for k, v := range fields {
-		result[k] = v.Name
-	}
-	return result, nil
+	/*
+		rv, err := db.QueryMaps(sql, args...)
+		code := ""
+		if len(args) > 0 {
+			code = "." + args[0].(string)
+		}
+		checkTestDataUpdate(method+code, rv)
+		return rv, err
+	*/
 }
 
 // QueryMaps fetches []map[string]interface{} from query result
@@ -85,7 +88,7 @@ func (db *DB) QueryMaps(query string, args ...interface{}) ([]map[string]interfa
 	defer r.Close()
 
 	result := []map[string]interface{}{}
-	fields, _ := columns(r)
+	fields := r.FieldDescriptions()
 	for r.Next() {
 		row, err := r.Values()
 		if err != nil {
@@ -93,7 +96,14 @@ func (db *DB) QueryMaps(query string, args ...interface{}) ([]map[string]interfa
 		}
 		rowMap := map[string]interface{}{}
 		for k, v := range row {
-			rowMap[fields[k]] = v
+			if v == nil {
+				continue
+			}
+			val, err := decodeValue(fields[k].DataTypeName, v)
+			if err != nil {
+				return nil, err
+			}
+			rowMap[fields[k].Name] = val
 		}
 		result = append(result, rowMap)
 	}
@@ -103,7 +113,7 @@ func (db *DB) QueryMaps(query string, args ...interface{}) ([]map[string]interfa
 	return result, nil
 }
 
-// Query fetches []interface{} from query result
+// Query fetches []interface{} (slece of 1st column values) from query result
 func (db *DB) Query(query string, args ...interface{}) ([]interface{}, error) {
 	r, err := db.dbh.Query(query, args...)
 	if err != nil {
@@ -111,19 +121,54 @@ func (db *DB) Query(query string, args ...interface{}) ([]interface{}, error) {
 	}
 	defer r.Close()
 	result := []interface{}{}
-	fields, _ := columns(r)
+	fields := r.FieldDescriptions()
 	if len(fields) != 1 {
-		return nil, errors.New("single column must be returned")
+		return nil, errors.Errorf("single column must be returned (got %d)", len(fields))
 	}
 	for r.Next() {
 		row, err := r.Values()
 		if err != nil {
 			return nil, err
 		}
-		result = append(result, row[0])
+		v := row[0]
+		if v == nil {
+			result = append(result, v)
+			continue
+		}
+		val, err := decodeValue(fields[0].DataTypeName, v)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, val)
 	}
 	if r.Err() != nil {
 		return nil, r.Err()
 	}
 	return result, nil
+}
+
+// decode value from pgx.pgtype to go type
+func decodeValue(typ string, val interface{}) (interface{}, error) {
+	if strings.HasPrefix(typ, "_") {
+		// value is slice
+		switch typ {
+		case "_int4":
+			rv := []int32{}
+			err := val.(*pgtype.Int4Array).AssignTo(&rv)
+			return rv, err
+		case "_text":
+			rv := []string{}
+			err := val.(*pgtype.TextArray).AssignTo(&rv)
+			return rv, err
+		default:
+			return nil, errors.Errorf("result of type %s does not supported", typ)
+		}
+	}
+	switch typ {
+	case "numeric":
+		var rv float32
+		err := val.(pgtype.Value).AssignTo(&rv)
+		return rv, err
+	}
+	return val, nil
 }

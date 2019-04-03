@@ -52,8 +52,8 @@ type Method struct {
 	IsStruct bool             `db:"is_struct"`
 	Sample   *string          `db:"sample" json:",omitempty"`
 	Result   *string          `db:"result" json:",omitempty"`
-	In       map[string]InDef `json:",omitempty"`
-	Out      []OutDef         `json:",omitempty"`
+	In       map[string]InDef //`json:",omitempty"`
+	Out      []OutDef         //`json:",omitempty"`
 }
 
 type DB interface {
@@ -155,17 +155,14 @@ func (srv *Server) LoadMethods(nsp *string) error {
 		if err != nil {
 			return err
 		}
-		outArgs := []OutDef{}
 		for _, vOut := range outs {
 			var out OutDef
 			err = Decode(vOut, &out)
 			if err != nil {
 				return err
 			}
-			outArgs = append(outArgs, out)
+			result.Out = append(result.Out, out)
 		}
-		result.Out = outArgs
-
 		re[result.Name] = result
 	}
 	srv.mx.Lock()

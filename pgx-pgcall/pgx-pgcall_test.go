@@ -59,7 +59,7 @@ func (ss *ServerSuite) TestQueryProc() {
 	rv, err := ss.srv.QueryProc(q, "index")
 	require.NoError(ss.T(), err)
 	want := []map[string]interface{}{
-		{"anno": "Схема БД", "arg": "a_nsp", "def_val": interface{}(nil), "required": false, "type": "text"},
+		{"anno": "Схема БД", "arg": "a_nsp", "required": false, "type": "text"},
 	}
 	assert.Equal(ss.T(), want, rv)
 

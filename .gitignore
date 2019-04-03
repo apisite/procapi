@@ -1,4 +1,4 @@
 tmp*
 TODO*
 coverage.*
-.env
+.env*

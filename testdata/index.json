@@ -1,32 +1,51 @@
 [
   {
-    "anno": "Атрибуты аргументов ф-и",
+    "anno": "Описание аргументов процедуры",
     "code": "func_args",
     "is_ro": true,
     "is_set": true,
     "is_struct": true,
-    "nspname": "pgfc_test",
+    "nspname": "rpc",
     "proname": "func_args",
-    "sample": "{\"code\": \"func_args\"}"
+    "sample": "{\"a_code\": \"func_args\"}"
   },
   {
-    "anno": "Атрибуты результата ф-и",
+    "anno": "Описание результата процедуры",
     "code": "func_result",
     "is_ro": true,
     "is_set": true,
     "is_struct": true,
-    "nspname": "pgfc_test",
+    "nspname": "rpc",
     "proname": "func_result",
-    "sample": "{\"code\": \"func_args\"}"
+    "sample": "{\"a_code\": \"func_args\"}"
   },
   {
-    "anno": "Список функций",
+    "anno": "Список описаний процедур",
     "code": "index",
     "is_ro": true,
     "is_set": true,
     "is_struct": true,
-    "nspname": "pgfc_test",
+    "nspname": "rpc",
     "proname": "index",
-    "sample": "{\"nsp\":\"pgfc_test\"}"
+    "result": "rpc.func_def"
+  },
+  {
+    "anno": "Args test",
+    "code": "test_args",
+    "is_ro": true,
+    "is_set": false,
+    "is_struct": false,
+    "nspname": "rpc_testing",
+    "proname": "test_args",
+    "result": "text"
+  },
+  {
+    "anno": "Types test",
+    "code": "test_types",
+    "is_ro": true,
+    "is_set": true,
+    "is_struct": true,
+    "nspname": "rpc_testing",
+    "proname": "test_types"
   }
 ]

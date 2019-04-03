@@ -26,6 +26,11 @@ func initPool(cfg Config, log loggers.Contextual) (*pgx.ConnPoolConfig, error) {
 			if cfg.Schema != "" {
 				log.Debugf("DB searchpath: (%s)", cfg.Schema)
 				_, err = conn.Exec("set search_path = " + cfg.Schema)
+
+			}
+			if err == nil {
+				log.Debugf("DB timezone: (%s)", cfg.TimeZone)
+				_, err = conn.Exec("set timezone = '" + cfg.TimeZone + "'")
 			}
 			log.Debugf("Added DB connection")
 			return err

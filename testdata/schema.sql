@@ -6,7 +6,7 @@
 
 \set WD `printenv WORKDIR`
 
-\set ID pgfc_test
+\set ID rpc
 -- Create schema
 CREATE SCHEMA IF NOT EXISTS :ID;
 \set QUIET on
@@ -94,6 +94,15 @@ select * from func_result('func_args');
 select * from func_result('func_result');
 select * from func_result('unknown');
 
--- drop schema pgfc_test cascade;
+/*
+  Testing funcs
+*/
 
--- TODO: func with all pg types in args and result
+\set PKG rpc_testing
+CREATE SCHEMA :PKG;
+SET SEARCH_PATH = :PKG, 'public';
+
+\set SQL :WD /50_args.sql
+\i :SQL
+\set SQL :WD /50_types.sql
+\i :SQL

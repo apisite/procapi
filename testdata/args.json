@@ -12,7 +12,7 @@
       "arg": "a_code",
       "type": "text",
       "required": true,
-      "anno": "Имя функции"
+      "anno": "Имя процедуры"
     }
   ],
   "func_result": [
@@ -20,7 +20,138 @@
       "arg": "a_code",
       "type": "text",
       "required": true,
-      "anno": "Имя функции"
+      "anno": "Имя процедуры"
     }
+  ],
+  "test_args": [
+    {
+      "anno": "Tested arg",
+      "arg": "a_name",
+      "def_val": "def",
+      "required": false,
+      "type": "text"
+    }
+  ],
+  "test_types": [
+  {
+    "anno": "bool",
+    "arg": "a_tbool",
+    "required": true,
+    "type": "boolean"
+  },
+  {
+    "anno": "char",
+    "arg": "a_tchar",
+    "required": true,
+    "type": "character"
+  },
+  {
+    "anno": "date",
+    "arg": "a_tdate",
+    "required": true,
+    "type": "date"
+  },
+  {
+    "anno": "float4",
+    "arg": "a_tfloat4",
+    "required": true,
+    "type": "real"
+  },
+  {
+    "anno": "float8",
+    "arg": "a_tfloat8",
+    "required": true,
+    "type": "double"
+  },
+  {
+    "anno": "inet",
+    "arg": "a_tinet",
+    "required": true,
+    "type": "inet"
+  },
+  {
+    "anno": "int2",
+    "arg": "a_tint2",
+    "required": true,
+    "type": "smallint"
+  },
+  {
+    "anno": "int4",
+    "arg": "a_tint4",
+    "required": true,
+    "type": "integer"
+  },
+  {
+    "anno": "int8",
+    "arg": "a_tint8",
+    "required": true,
+    "type": "bigint"
+  },
+  {
+    "anno": "interval",
+    "arg": "a_tinterval",
+    "required": true,
+    "type": "interval"
+  },
+  {
+    "anno": "json",
+    "arg": "a_tjson",
+    "required": true,
+    "type": "json"
+  },
+  {
+    "anno": "jsonb",
+    "arg": "a_tjsonb",
+    "required": true,
+    "type": "jsonb"
+  },
+  {
+    "anno": "money",
+    "arg": "a_tmoney",
+    "required": true,
+    "type": "money"
+  },
+  {
+    "anno": "numeric",
+    "arg": "a_tnumeric",
+    "required": true,
+    "type": "numeric"
+  },
+  {
+    "anno": "text",
+    "arg": "a_ttext",
+    "required": true,
+    "type": "text"
+  },
+  {
+    "anno": "time",
+    "arg": "a_ttime",
+    "required": true,
+    "type": "time"
+  },
+  {
+    "anno": "timestamp",
+    "arg": "a_ttimestamp",
+    "required": true,
+    "type": "timestamp"
+  },
+  {
+    "anno": "timestamptz",
+    "arg": "a_ttimestamptz",
+    "required": true,
+    "type": "timestamp"
+  },
+  {
+    "anno": "int4[]",
+    "arg": "a_aint4",
+    "required": true,
+    "type": "integer[]"
+  },
+  {
+    "anno": "text[]",
+    "arg": "a_atext",
+    "required": true,
+    "type": "text[]"
+  }
   ]
 }

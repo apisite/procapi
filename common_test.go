@@ -17,6 +17,7 @@ func (ss *ServerSuite) TestMethods() {
 	var mg map[string]Method
 
 	helperLoadJSON(ss.T(), "methods.golden.json", &mg)
+	checkTestUpdate("methods.golden.json", m)
 	assert.Equal(ss.T(), mg, m)
 }
 
@@ -78,4 +79,9 @@ func TestSuite(t *testing.T) {
 			fmt.Printf("ENT[%s]: %s\n", e.Level, e.Message)
 		}
 	*/
+}
+func (ss *ServerSuite) printLogs() {
+	for _, e := range ss.hook.Entries {
+		fmt.Printf("ENT[%s]: %s\n", e.Level, e.Message)
+	}
 }

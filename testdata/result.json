@@ -89,5 +89,93 @@
       "arg": "anno",
       "type": "text"
     }
+  ],
+  "test_args": [
+  ],
+  "test_types": [
+  {
+    "arg": "id",
+    "type": "integer"
+  },
+  {
+    "arg": "tbool",
+    "type": "boolean"
+  },
+  {
+    "arg": "tchar",
+    "type": "character"
+  },
+  {
+    "arg": "tdate",
+    "type": "date"
+  },
+  {
+    "arg": "tfloat4",
+    "type": "real"
+  },
+  {
+    "arg": "tfloat8",
+    "type": "double"
+  },
+  {
+    "arg": "tinet",
+    "type": "inet"
+  },
+  {
+    "arg": "tint2",
+    "type": "smallint"
+  },
+  {
+    "arg": "tint4",
+    "type": "integer"
+  },
+  {
+    "arg": "tint8",
+    "type": "bigint"
+  },
+  {
+    "arg": "tinterval",
+    "type": "interval"
+  },
+  {
+    "arg": "tjson",
+    "type": "json"
+  },
+  {
+    "arg": "tjsonb",
+    "type": "jsonb"
+  },
+  {
+    "arg": "tmoney",
+    "type": "money"
+  },
+  {
+    "arg": "tnumeric",
+    "type": "numeric"
+  },
+  {
+    "arg": "ttext",
+    "type": "text"
+  },
+  {
+    "arg": "ttime",
+    "type": "time"
+  },
+  {
+    "arg": "ttimestamp",
+    "type": "timestamp"
+  },
+  {
+    "arg": "ttimestamptz",
+    "type": "timestamp"
+  },
+  {
+    "arg": "aint4",
+    "type": "integer[]"
+  },
+  {
+    "arg": "atext",
+    "type": "text[]"
+  }
   ]
 }

@@ -1,19 +1,19 @@
 {
   "func_args": {
     "Name": "func_args",
-    "Class": "pgfc_test",
+    "Class": "rpc",
     "Func": "func_args",
-    "Anno": "Атрибуты аргументов ф-и",
+    "Anno": "Описание аргументов процедуры",
     "IsRO": true,
     "IsSet": true,
     "IsStruct": true,
-    "Sample": "{\"code\": \"func_args\"}",
+    "Sample": "{\"a_code\": \"func_args\"}",
     "In": {
       "code": {
         "Name": "a_code",
         "Type": "text",
         "Required": true,
-        "Anno": "Имя функции"
+        "Anno": "Имя процедуры"
       }
     },
     "Out": [
@@ -46,19 +46,19 @@
   },
   "func_result": {
     "Name": "func_result",
-    "Class": "pgfc_test",
+    "Class": "rpc",
     "Func": "func_result",
-    "Anno": "Атрибуты результата ф-и",
+    "Anno": "Описание результата процедуры",
     "IsRO": true,
     "IsSet": true,
     "IsStruct": true,
-    "Sample": "{\"code\": \"func_args\"}",
+    "Sample": "{\"a_code\": \"func_args\"}",
     "In": {
       "code": {
         "Name": "a_code",
         "Type": "text",
         "Required": true,
-        "Anno": "Имя функции"
+        "Anno": "Имя процедуры"
       }
     },
     "Out": [
@@ -81,13 +81,13 @@
   },
   "index": {
     "Name": "index",
-    "Class": "pgfc_test",
+    "Class": "rpc",
     "Func": "index",
-    "Anno": "Список функций",
+    "Anno": "Список описаний процедур",
     "IsRO": true,
     "IsSet": true,
     "IsStruct": true,
-    "Sample": "{\"nsp\":\"pgfc_test\"}",
+    "Result": "rpc.func_def",
     "In": {
       "nsp": {
         "Name": "a_nsp",
@@ -141,6 +141,243 @@
         "Name": "sample",
         "Type": "text",
         "Anno": "Пример вызова"
+      }
+    ]
+  },
+  "test_args": {
+    "Name": "test_args",
+    "Class": "rpc_testing",
+    "Func": "test_args",
+    "Anno": "Args test",
+    "IsRO": true,
+    "IsSet": false,
+    "IsStruct": false,
+    "Result": "text",
+    "In": {
+      "name": {
+        "Name": "a_name",
+        "Type": "text",
+        "Required": false,
+        "Default": "def",
+        "Anno": "Tested arg"
+      }
+    },
+    "Out": null
+  },
+  "test_types": {
+    "Name": "test_types",
+    "Class": "rpc_testing",
+    "Func": "test_types",
+    "Anno": "Types test",
+    "IsRO": true,
+    "IsSet": true,
+    "IsStruct": true,
+    "In": {
+      "aint4": {
+        "Name": "a_aint4",
+        "Type": "integer[]",
+        "Required": true,
+        "Anno": "int4[]"
+      },
+      "atext": {
+        "Name": "a_atext",
+        "Type": "text[]",
+        "Required": true,
+        "Anno": "text[]"
+      },
+      "tbool": {
+        "Name": "a_tbool",
+        "Type": "boolean",
+        "Required": true,
+        "Anno": "bool"
+      },
+      "tchar": {
+        "Name": "a_tchar",
+        "Type": "character",
+        "Required": true,
+        "Anno": "char"
+      },
+      "tdate": {
+        "Name": "a_tdate",
+        "Type": "date",
+        "Required": true,
+        "Anno": "date"
+      },
+      "tfloat4": {
+        "Name": "a_tfloat4",
+        "Type": "real",
+        "Required": true,
+        "Anno": "float4"
+      },
+      "tfloat8": {
+        "Name": "a_tfloat8",
+        "Type": "double",
+        "Required": true,
+        "Anno": "float8"
+      },
+      "tinet": {
+        "Name": "a_tinet",
+        "Type": "inet",
+        "Required": true,
+        "Anno": "inet"
+      },
+      "tint2": {
+        "Name": "a_tint2",
+        "Type": "smallint",
+        "Required": true,
+        "Anno": "int2"
+      },
+      "tint4": {
+        "Name": "a_tint4",
+        "Type": "integer",
+        "Required": true,
+        "Anno": "int4"
+      },
+      "tint8": {
+        "Name": "a_tint8",
+        "Type": "bigint",
+        "Required": true,
+        "Anno": "int8"
+      },
+      "tinterval": {
+        "Name": "a_tinterval",
+        "Type": "interval",
+        "Required": true,
+        "Anno": "interval"
+      },
+      "tjson": {
+        "Name": "a_tjson",
+        "Type": "json",
+        "Required": true,
+        "Anno": "json"
+      },
+      "tjsonb": {
+        "Name": "a_tjsonb",
+        "Type": "jsonb",
+        "Required": true,
+        "Anno": "jsonb"
+      },
+      "tmoney": {
+        "Name": "a_tmoney",
+        "Type": "money",
+        "Required": true,
+        "Anno": "money"
+      },
+      "tnumeric": {
+        "Name": "a_tnumeric",
+        "Type": "numeric",
+        "Required": true,
+        "Anno": "numeric"
+      },
+      "ttext": {
+        "Name": "a_ttext",
+        "Type": "text",
+        "Required": true,
+        "Anno": "text"
+      },
+      "ttime": {
+        "Name": "a_ttime",
+        "Type": "time",
+        "Required": true,
+        "Anno": "time"
+      },
+      "ttimestamp": {
+        "Name": "a_ttimestamp",
+        "Type": "timestamp",
+        "Required": true,
+        "Anno": "timestamp"
+      },
+      "ttimestamptz": {
+        "Name": "a_ttimestamptz",
+        "Type": "timestamp",
+        "Required": true,
+        "Anno": "timestamptz"
+      }
+    },
+    "Out": [
+      {
+        "Name": "id",
+        "Type": "integer"
+      },
+      {
+        "Name": "tbool",
+        "Type": "boolean"
+      },
+      {
+        "Name": "tchar",
+        "Type": "character"
+      },
+      {
+        "Name": "tdate",
+        "Type": "date"
+      },
+      {
+        "Name": "tfloat4",
+        "Type": "real"
+      },
+      {
+        "Name": "tfloat8",
+        "Type": "double"
+      },
+      {
+        "Name": "tinet",
+        "Type": "inet"
+      },
+      {
+        "Name": "tint2",
+        "Type": "smallint"
+      },
+      {
+        "Name": "tint4",
+        "Type": "integer"
+      },
+      {
+        "Name": "tint8",
+        "Type": "bigint"
+      },
+      {
+        "Name": "tinterval",
+        "Type": "interval"
+      },
+      {
+        "Name": "tjson",
+        "Type": "json"
+      },
+      {
+        "Name": "tjsonb",
+        "Type": "jsonb"
+      },
+      {
+        "Name": "tmoney",
+        "Type": "money"
+      },
+      {
+        "Name": "tnumeric",
+        "Type": "numeric"
+      },
+      {
+        "Name": "ttext",
+        "Type": "text"
+      },
+      {
+        "Name": "ttime",
+        "Type": "time"
+      },
+      {
+        "Name": "ttimestamp",
+        "Type": "timestamp"
+      },
+      {
+        "Name": "ttimestamptz",
+        "Type": "timestamp"
+      },
+      {
+        "Name": "aint4",
+        "Type": "integer[]"
+      },
+      {
+        "Name": "atext",
+        "Type": "text[]"
       }
     ]
   }
