@@ -23,8 +23,8 @@ import (
 
 // Config holds all config vars
 type TestConfig struct {
-	Call Config           `group:"PGFC Options" namespace:"pgcall"`
-	DB   pgxpgcall.Config `group:"PG Options" namespace:"db" env-namespace:"DB"`
+	Call Config           `group:"pgcall Options" namespace:"pgcall"`
+	DB   pgxpgcall.Config `group:"pgx-pgcall Options" namespace:"db" env-namespace:"DB"`
 }
 
 type ServerSuite struct {
@@ -162,7 +162,7 @@ func (ss *ServerSuite) TestCallTypes() {
 	}
 
 	want := []map[string]interface{}{
-		map[string]interface{}{
+		{
 			"aint4":        []int32{1, 2, 3},
 			"atext":        []string{`{"b":2}`, `{"c":3}`},
 			"id":           int32(1),
@@ -185,7 +185,7 @@ func (ss *ServerSuite) TestCallTypes() {
 			"ttimestamp":   ts,
 			"ttimestamptz": tstz.In(loc),
 		},
-		map[string]interface{}{
+		{
 			"aint4":        []int32{9, 8, 7},
 			"atext":        []string{"zyx1", "zyx2"},
 			"id":           int32(2),
@@ -208,7 +208,7 @@ func (ss *ServerSuite) TestCallTypes() {
 			"ttimestamp":   ts2,
 			"ttimestamptz": tstz2.In(loc),
 		},
-		map[string]interface{}{
+		{
 			"id": int32(3),
 		},
 	}

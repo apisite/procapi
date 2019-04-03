@@ -1,5 +1,5 @@
 // Package pgxpgcall implements a jackc/pgx backend for pgcall.
-// pgx was choosen for its postgresql type support
+// pgx was chosen for its postgresql types support
 package pgxpgcall
 
 import (
