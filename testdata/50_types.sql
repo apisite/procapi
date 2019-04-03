@@ -108,7 +108,7 @@ UNION ALL SELECT
 , (a_tint2 / 2)::int2
 , (a_tint4 / 2)::int4
 , (a_tint8 / 2)::int8
-, a_tinterval + '1 month'::interval
+, a_tinterval + '1 hour'::interval
 , a_tjson
 , a_tjsonb
 , a_tmoney

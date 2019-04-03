@@ -5,7 +5,6 @@ package pgcall
 import (
 	"net/http"
 	"net/http/httptest"
-	"os"
 
 	"encoding/json"
 	"net"
@@ -24,8 +23,8 @@ import (
 
 // Config holds all config vars
 type TestConfig struct {
-	PGFC Config           `group:"PGFC Options" namespace:"pgcall"`
-	PGXI pgxpgcall.Config `group:"PG Options" namespace:"db" env-namespace:"DB"`
+	Call Config           `group:"PGFC Options" namespace:"pgcall"`
+	DB   pgxpgcall.Config `group:"PG Options" namespace:"db" env-namespace:"DB"`
 }
 
 type ServerSuite struct {
@@ -40,26 +39,24 @@ func (ss *ServerSuite) SetupSuite() {
 
 	// Fill config with default values
 	p := flags.NewParser(&ss.cfg, flags.Default|flags.IgnoreUnknown)
-	_, err := p.ParseArgs([]string{})
-	//_, err := p.Parse() //Args([]string{})
+	_, err := p.Parse()
 	require.NoError(ss.T(), err)
 
-	ss.cfg.PGXI.Schema = os.Getenv("DB_SCHEMA") // TODO: Parser have to get it
 	l, hook := test.NewNullLogger()
 	ss.hook = hook
 	l.SetLevel(logrus.DebugLevel)
 	log := mapper.NewLogger(l)
 
 	hook.Reset()
-	ss.cfg.PGXI.LogLevel = "debug"
-	db, err := pgxpgcall.New(ss.cfg.PGXI, log)
+	ss.cfg.DB.LogLevel = "debug" // we count log lines
+	db, err := pgxpgcall.New(ss.cfg.DB, log)
 	require.NoError(ss.T(), err)
 	assert.Equal(ss.T(), "Added DB connection", ss.hook.LastEntry().Message)
 
 	ss.req = httptest.NewRequest("GET", "http://example.com/foo", nil)
 	//    w := httptest.NewRecorder()
 
-	s, err := New(ss.cfg.PGFC, log, db)
+	s, err := New(ss.cfg.Call, log, db)
 	require.NoError(ss.T(), err)
 	ss.srv = s
 }
@@ -88,7 +85,7 @@ func (ss *ServerSuite) TestCall() {
 	}
 
 	// 3 debug lines about required arg (IN args, Use, Sql, Query)
-	assert.Equal(ss.T(), 4, len(ss.hook.Entries))
+	assert.Equal(ss.T(), 6, len(ss.hook.Entries))
 }
 
 func (ss *ServerSuite) TestCallArgs() {
@@ -132,10 +129,14 @@ func (ss *ServerSuite) TestCallTypes() {
 
 	ts, _ := time.Parse("02.01.2006 15:04:05.00", "17.12.1997 15:37:16.10")
 	ts2, _ := time.Parse("02.01.2006 15:04:05", "17.12.1997 15:37:16")
-	tstz, _ := time.Parse("02.01.2006 15:04:05.00 MST", "17.12.1997 15:37:16.10 MSK")
-	tstz2, _ := time.Parse("02.01.2006 15:04 MST", "17.12.1997 19:00 MSK")
 
-	//	aint := []int32{1, 2, 3}
+	tstz, _ := time.Parse("02.01.2006 15:04:05.00 MST", "17.12.1997 12:37:16.10 UTC")
+	tstz2, _ := time.Parse("02.01.2006 15:04 MST", "17.12.1997 16:00 UTC")
+
+	// Will receive timestamps for this location
+	// ENV{TZ} should be used to set timezone (TODO: How is this works?)
+	loc := time.Now().Location()
+
 	args := map[string]interface{}{
 		"tbool":        bool(true),
 		"tchar":        string("z"),
@@ -154,57 +155,57 @@ func (ss *ServerSuite) TestCallTypes() {
 		"ttext":        `{"precomputed": true, "b":2}`,
 		"ttime":        "23:59:10", //tm,
 		"ttimestamp":   ts,
-		"ttimestamptz": tstz,
+		"ttimestamptz": tstz.In(loc),
 		"aint4":        []int32{1, 2, 3},
 		"atext":        []string{`{"b":2}`, `{"c":3}`},
 	}
 
 	want := []map[string]interface{}{
 		map[string]interface{}{
-			"aint4":        []int32{1, 2, 3},               //(*pgtype.Int4Array)(0xc00018a300),
-			"atext":        []string{`{"b":2}`, `{"c":3}`}, //(*pgtype.TextArray)(0xc00018a1c0),
+			"aint4":        []int32{1, 2, 3},
+			"atext":        []string{`{"b":2}`, `{"c":3}`},
 			"id":           int32(1),
 			"tbool":        true,
 			"tchar":        "z",
-			"tdate":        dt, //time.Time{wall: 0x0, ext: 63430992000, loc: (*time.Location)(nil)},
+			"tdate":        dt,
 			"tfloat4":      float32(12.34),
 			"tfloat8":      3456.789,
-			"tinet":        ipv4Net, //(*net.IPNet)(0xc0003924b0),
+			"tinet":        ipv4Net,
 			"tint2":        int16(2),
 			"tint4":        int32(4),
 			"tint8":        int64(8),
-			"tinterval":    "00:00:10",
+			"tinterval":    time.Duration(10) * time.Second,
 			"tjson":        map[string]interface{}{"b": float64(2), "precomputed": true},
 			"tjsonb":       map[string]interface{}{"b": float64(2), "precomputed": true},
 			"tmoney":       "$5,678.90",
-			"tnumeric":     float32(7890.1234), //(*pgtype.Numeric)(0xc00017e130),
+			"tnumeric":     float32(7890.1234),
 			"ttext":        `{"precomputed": true, "b":2}`,
 			"ttime":        "23:59:10",
-			"ttimestamp":   ts,   //time.Time{wall: 0x0, ext: 0, loc: (*time.Location)(nil)},
-			"ttimestamptz": tstz, //time.Time{wall: 0x0, ext: 0, loc: (*time.Location)(0xfe0400)},
+			"ttimestamp":   ts,
+			"ttimestamptz": tstz.In(loc),
 		},
 		map[string]interface{}{
-			"aint4":        []int32{9, 8, 7},         //(*pgtype.Int4Array)(0xc00018a300),
-			"atext":        []string{"zyx1", "zyx2"}, //*pgtype.TextArray)(0xc00018a1c0),
+			"aint4":        []int32{9, 8, 7},
+			"atext":        []string{"zyx1", "zyx2"},
 			"id":           int32(2),
 			"tbool":        false,
 			"tchar":        "x",
-			"tdate":        dt2, //time.Time{wall: 0x0, ext: 63689587200, loc: (*time.Location)(nil)},
+			"tdate":        dt2,
 			"tfloat4":      float32(4.113333),
 			"tfloat8":      float64(1152.2630000000001),
-			"tinet":        ipv4Net, //(*net.IPNet)(0xc0003925a0),
+			"tinet":        ipv4Net,
 			"tint2":        int16(1),
 			"tint4":        int32(2),
 			"tint8":        int64(4),
-			"tinterval":    "1 mon 00:00:10",
+			"tinterval":    time.Duration(3610) * time.Second, // 1h0m10s
 			"tjson":        map[string]interface{}{"b": float64(2), "precomputed": true},
 			"tjsonb":       map[string]interface{}{"b": float64(2), "precomputed": true},
 			"tmoney":       "$5,678.90",
-			"tnumeric":     float32(7890.1234), //(*pgtype.Numeric)(0xc00017e130),
+			"tnumeric":     float32(7890.1234),
 			"ttext":        `{"precomputed": true, "b":2}{"precomputed": true, "b":2}`,
 			"ttime":        "23:55:10.5",
-			"ttimestamp":   ts2,   //time.Time{wall: 0x0, ext: 63017969836, loc: (*time.Location)(nil)},
-			"ttimestamptz": tstz2, //time.Time{wall: 0x0, ext: 63017971200, loc: (*time.Location)(0xfe0400)},
+			"ttimestamp":   ts2,
+			"ttimestamptz": tstz2.In(loc),
 		},
 		map[string]interface{}{
 			"id": int32(3),

@@ -11,11 +11,15 @@ func initPool(cfg Config, log loggers.Contextual) (*pgx.ConnPoolConfig, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "Unable to parse environment")
 	}
+	/*
+		//	TODO:
+		//	pgx-pgcall/connect.go:18: cannot use level (type pgx.LogLevel) as type int in assignment
+	*/
 	level, err := pgx.LogLevelFromString(cfg.LogLevel)
 	if err != nil {
 		return nil, errors.Wrap(err, "Unable to parse log level "+cfg.LogLevel)
 	}
-	dbConf.LogLevel = int(level)
+	dbConf.LogLevel = level
 	dbConf.Logger = Logger{l: log}
 
 	config := pgx.ConnPoolConfig{
@@ -27,10 +31,6 @@ func initPool(cfg Config, log loggers.Contextual) (*pgx.ConnPoolConfig, error) {
 				log.Debugf("DB searchpath: (%s)", cfg.Schema)
 				_, err = conn.Exec("set search_path = " + cfg.Schema)
 
-			}
-			if err == nil {
-				log.Debugf("DB timezone: (%s)", cfg.TimeZone)
-				_, err = conn.Exec("set timezone = '" + cfg.TimeZone + "'")
 			}
 			log.Debugf("Added DB connection")
 			return err

@@ -3,8 +3,6 @@
 package pgxpgcall
 
 import (
-	"os"
-
 	mapper "github.com/birkirb/loggers-mapper-logrus"
 	"github.com/jessevdk/go-flags"
 	"github.com/sirupsen/logrus"
@@ -36,9 +34,6 @@ func (ss *ServerSuite) SetupSuite() {
 	//	_, err := p.ParseArgs([]string{})
 	_, err := p.Parse() //Args([]string{})
 	require.NoError(ss.T(), err)
-
-	ss.cfg.Schema = os.Getenv("DB_SCHEMA") // TODO: Parser have to get it
-
 	ss.srv, err = New(ss.cfg, ss.log)
 	require.NoError(ss.T(), err)
 

@@ -82,11 +82,11 @@ cov:
 
 ## Show coverage
 cov-db:
-	DB_SCHEMA="rpc,public" DB_LOGLEVEL=debug \
+	SCHEMA="rpc,public" TZ="Europe/Berlin" \
 	$(GO) test -coverprofile=coverage.out -race -covermode=atomic -tags="db nocommon" -v $(GOSOURCES)
 
 cov-db-upd:
-	DB_SCHEMA="rpc,public" DB_LOGLEVEL=debug TEST_UPDATE=yes \
+	SCHEMA="rpc,public" TEST_UPDATE=yes \
 	$(GO) test -coverprofile=coverage.out -race -covermode=atomic -tags="db nocommon" -v $(GOSOURCES)
 
 ## Show package coverage in html

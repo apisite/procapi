@@ -17,13 +17,13 @@ import (
 type Config struct {
 	Schema   string `long:"schema" env:"SCHEMA" default:"" description:"Database functions schema name or comma delimited list"`
 	LogLevel string `long:"loglevel" env:"LOGLEVEL" default:"error" description:"DB logging level (trace|debug|info|warn|error|none)"`
-	TimeZone string `long:"tz" env:"TZ" default:"Europe/Moscow" description:"Database connection timezone"`
 	Retry    int    `long:"retry" default:"5" description:"Retry db connect after this interfal (secs), No retry if 0"`
 	Workers  int    `long:"workers" default:"2" description:"DB connections count"`
 }
 
 type DB struct {
 	dbh *pgx.ConnPool
+	cfg Config
 }
 
 func New(cfg Config, log loggers.Contextual) (*DB, error) {
@@ -46,7 +46,7 @@ func New(cfg Config, log loggers.Contextual) (*DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &DB{dbh: dbh}, nil
+	return &DB{dbh: dbh, cfg: cfg}, nil
 }
 
 func (db *DB) Exec(sql string, arguments ...interface{}) (int64, error) {
@@ -81,7 +81,16 @@ func (db *DB) QueryProc(method string, args ...interface{}) ([]map[string]interf
 
 // QueryMaps fetches []map[string]interface{} from query result
 func (db *DB) QueryMaps(query string, args ...interface{}) ([]map[string]interface{}, error) {
-	r, err := db.dbh.Query(query, args...)
+
+	tx, err := db.dbh.Begin()
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		tx.Rollback()
+	}()
+
+	r, err := tx.Query(query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -110,6 +119,7 @@ func (db *DB) QueryMaps(query string, args ...interface{}) ([]map[string]interfa
 	if r.Err() != nil {
 		return nil, r.Err()
 	}
+	tx.Commit()
 	return result, nil
 }
 
@@ -167,6 +177,10 @@ func decodeValue(typ string, val interface{}) (interface{}, error) {
 	switch typ {
 	case "numeric":
 		var rv float32
+		err := val.(pgtype.Value).AssignTo(&rv)
+		return rv, err
+	case "interval": // TODO: interval with months or days cannot be decoded into *time.Duration
+		var rv time.Duration
 		err := val.(pgtype.Value).AssignTo(&rv)
 		return rv, err
 	}

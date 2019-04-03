@@ -27,8 +27,7 @@ steps:
     environment:
       CODECOV_TOKEN:
         from_secret: my-codecov-token
-      DB_SCHEMA:   rpc,public
-      DB_LOGLEVEL: debug
+      SCHEMA:      rpc,public
       PGHOST:      database
       PGDATABASE:  test
       PGUSER:      postgres
