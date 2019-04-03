@@ -5,22 +5,21 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	//	"path/filepath"
 )
 
-const TEST_UPDATE_ENV = "TEST_UPDATE"
-const TEST_UPDATE_DIR = "testdata-new"
+const TestUpdateEnv = "TEST_UPDATE"
+const TestUpdateDir = "testdata-new"
 
 func checkTestUpdate(file string, data interface{}) {
 
-	if os.Getenv(TEST_UPDATE_ENV) == "" {
+	if os.Getenv(TestUpdateEnv) == "" {
 		return
 	}
-
-	if _, err := os.Stat(TEST_UPDATE_DIR); os.IsNotExist(err) {
-		os.Mkdir(TEST_UPDATE_DIR, os.ModePerm)
+	if _, err := os.Stat(TestUpdateDir); os.IsNotExist(err) {
+		err = os.Mkdir(TestUpdateDir, os.ModePerm)
+		check(err)
 	}
-	p, err := ioutil.TempFile(TEST_UPDATE_DIR, file+".")
+	p, err := ioutil.TempFile(TestUpdateDir, file+".")
 	check(err)
 	fmt.Printf("*** Writing %s\n", p.Name())
 	out, err := json.MarshalIndent(data, "", "  ")

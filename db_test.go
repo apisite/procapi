@@ -85,7 +85,7 @@ func (ss *ServerSuite) TestCall() {
 	}
 
 	// 3 debug lines about required arg (IN args, Use, Sql, Query)
-	assert.Equal(ss.T(), 6, len(ss.hook.Entries))
+	assert.Equal(ss.T(), 4, len(ss.hook.Entries))
 }
 
 func (ss *ServerSuite) TestCallArgs() {
@@ -116,7 +116,8 @@ func (ss *ServerSuite) TestCallArgs() {
 
 		}
 	}
-	assert.Equal(ss.T(), 13, len(ss.hook.Entries))
+	ss.printLogs()                                 // show logs
+	assert.Equal(ss.T(), 13, len(ss.hook.Entries)) // count logs
 }
 
 func (ss *ServerSuite) TestCallTypes() {

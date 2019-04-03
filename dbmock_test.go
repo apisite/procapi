@@ -136,6 +136,6 @@ func (ss *ServerSuite) TestCall() {
 	}
 
 	// Two debug lines about required arg + SQL
-	assert.Equal(ss.T(), 3, len(ss.hook.Entries))
-	//assert.Equal(ss.T(), logrus.DebugLevel, ss.hook.LastEntry().Message)
+	ss.printLogs()                                // show logs
+	assert.Equal(ss.T(), 3, len(ss.hook.Entries)) // count logs
 }

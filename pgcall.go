@@ -56,6 +56,7 @@ type Method struct {
 	Out      []OutDef         //`json:",omitempty"`
 }
 
+// DB holda all of database methods used (see pgxpgcall)
 type DB interface {
 	QueryProc(method string, args ...interface{}) ([]map[string]interface{}, error)
 	Exec(sql string, arguments ...interface{}) (int64, error)
@@ -106,6 +107,7 @@ func (srv *Server) Method(name string) (Method, bool) {
 	return m, ok
 }
 
+// LoadMethods load methods for nsp if given, all of methods otherwise
 func (srv *Server) LoadMethods(nsp *string) error {
 
 	cfg := srv.config
@@ -170,6 +172,7 @@ func (srv *Server) LoadMethods(nsp *string) error {
 
 }
 
+// Decode fills struct from map using ithub.com/mitchellh/mapstructure
 func Decode(input interface{}, output interface{}) error {
 	config := &mapstructure.DecoderConfig{
 		Metadata: nil,

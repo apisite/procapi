@@ -21,11 +21,13 @@ type Config struct {
 	Workers  int    `long:"workers" default:"2" description:"DB connections count"`
 }
 
+// DB holds database connection
 type DB struct {
-	dbh *pgx.ConnPool
-	cfg Config
+	Conn *pgx.ConnPool
+	cfg  Config
 }
 
+// New connects to database and creates DB
 func New(cfg Config, log loggers.Contextual) (*DB, error) {
 	config, err := initPool(cfg, log)
 	if err != nil {
@@ -46,11 +48,12 @@ func New(cfg Config, log loggers.Contextual) (*DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &DB{dbh: dbh, cfg: cfg}, nil
+	return &DB{Conn: dbh, cfg: cfg}, nil
 }
 
+// Exec delegates to the underlying *Conn
 func (db *DB) Exec(sql string, arguments ...interface{}) (int64, error) {
-	t, err := db.dbh.Exec(sql, arguments...)
+	t, err := db.Conn.Exec(sql, arguments...)
 	if err == nil {
 		return t.RowsAffected(), nil
 	}
@@ -81,16 +84,19 @@ func (db *DB) QueryProc(method string, args ...interface{}) ([]map[string]interf
 
 // QueryMaps fetches []map[string]interface{} from query result
 func (db *DB) QueryMaps(query string, args ...interface{}) ([]map[string]interface{}, error) {
+	/*
+	   // TODO: dbh.BeginEx(ctv, Method.IsRO)
+	   	tx, err := db.Conn.Begin()
+	   	if err != nil {
+	   		return nil, err
+	   	}
+	   	defer func() {
+	   		tx.Rollback()
+	   	}()
 
-	tx, err := db.dbh.Begin()
-	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		tx.Rollback()
-	}()
-
-	r, err := tx.Query(query, args...)
+	   	r, err := tx.Query(query, args...)
+	*/
+	r, err := db.Conn.Query(query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -119,13 +125,13 @@ func (db *DB) QueryMaps(query string, args ...interface{}) ([]map[string]interfa
 	if r.Err() != nil {
 		return nil, r.Err()
 	}
-	tx.Commit()
+	// tx.Commit()
 	return result, nil
 }
 
 // Query fetches []interface{} (slece of 1st column values) from query result
 func (db *DB) Query(query string, args ...interface{}) ([]interface{}, error) {
-	r, err := db.dbh.Query(query, args...)
+	r, err := db.Conn.Query(query, args...)
 	if err != nil {
 		return nil, err
 	}

@@ -21,30 +21,34 @@ import (
 
 */
 
-type ErrorID uint8
+// ErrorID
+type errorID uint8
 
 const (
-	Unknown = ErrorID(iota)
-	NotFound
-	ArgsMissed
-	BadRequest
-	Internal
+	errUnknown = errorID(iota)
+	errNotFound
+	errArgsMissed
+	errBadRequest
+	errInternal
 )
 
-type CallError struct {
-	code ErrorID
+type callError struct {
+	code errorID
 	data map[string]interface{}
 }
 
-func (ce CallError) IsNotFound() bool {
-	return ce.code == NotFound
-}
-func (ce CallError) IsBadRequest() bool {
-	return ce.code == BadRequest || ce.code == ArgsMissed
+// IsNotFound checks error code
+func (ce callError) IsNotFound() bool {
+	return ce.code == errNotFound
 }
 
-//
-func (ce CallError) Code() string {
+// IsBadRequest checks error code
+func (ce callError) IsBadRequest() bool {
+	return ce.code == errBadRequest || ce.code == errArgsMissed
+}
+
+// Code returns error code
+func (ce callError) Code() string {
 	// not using stringer cause it has 114Mb distro
 	names := [...]string{
 		"Unknown",
@@ -53,13 +57,14 @@ func (ce CallError) Code() string {
 		"BadRequest",
 		"Internal",
 	}
-	if ce.code > Internal {
-		return names[Unknown]
+	if ce.code > errInternal {
+		return names[errUnknown]
 	}
 	return names[ce.code]
 }
 
-func (ce CallError) Message() string {
+// Message returns error description
+func (ce callError) Message() string {
 	// not using stringer cause it has 114Mb distro
 	names := [...]string{
 		"Unknown",
@@ -68,23 +73,25 @@ func (ce CallError) Message() string {
 		"BadRequest",
 		"Internal",
 	}
-	if ce.code > Internal {
-		return names[Unknown]
+	if ce.code > errInternal {
+		return names[errUnknown]
 	}
 	return names[ce.code]
 }
 
-func (ce CallError) Data() map[string]interface{} {
+// Data returns error data map
+func (ce callError) Data() map[string]interface{} {
 	return ce.data
 }
 
-func (ce CallError) Error() string {
+// Error returns error message with data
+func (ce callError) Error() string {
 	return fmt.Sprintf("%s (%s)", ce.Message(), ce.data)
 }
 
 // addContext is an internal method for setting error data
-//	err := (&CallError{code: NotFound}).addContext("name", method)
-func (ce *CallError) addContext(name string, value interface{}) *CallError {
+//	err := (&callError{code: NotFound}).addContext("name", method)
+func (ce *callError) addContext(name string, value interface{}) *callError {
 	if ce.data == nil {
 		ce.data = map[string]interface{}{}
 	}

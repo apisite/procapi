@@ -20,7 +20,7 @@ func (srv *Server) Call(r *http.Request,
 	// Lookup method.
 	methodSpec, ok := srv.Method(method)
 	if !ok {
-		return nil, (&CallError{code: NotFound}).addContext("name", method)
+		return nil, (&callError{code: errNotFound}).addContext("name", method)
 	}
 
 	var missedArgs []string
@@ -31,7 +31,7 @@ func (srv *Server) Call(r *http.Request,
 		missedArgs, inAssigns, inVars = prepareArgs(srv.log, methodSpec.In, args, srv.config.ArgSyntax)
 	}
 	if len(missedArgs) > 0 {
-		return nil, (&CallError{code: ArgsMissed}).addContext("args", missedArgs)
+		return nil, (&callError{code: errArgsMissed}).addContext("args", missedArgs)
 	}
 
 	if methodSpec.Out == nil && methodSpec.Result == nil {
