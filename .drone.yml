@@ -9,7 +9,7 @@ steps:
       - go test -v -race -coverprofile=coverage.txt -covermode=atomic ./... ./pgtype/... ./ginproc/...
       - go vet ./... ./pgtype/... ./ginproc/...
 
-  - name: create-db
+  - name: wait-for-db
     image: postgres:11.2-alpine
     commands:
     - until pg_isready -q -U postgres -h database ; do sleep 1 ; echo -n "." ; done
@@ -18,7 +18,9 @@ steps:
     image: golang:1.12
     pull: true
     commands:
+      - git submodule init
       - git submodule update
+      - go test -v -race -coverprofile=coverage.txt -covermode=atomic ./... ./pgtype/... ./ginproc/...
       - go test -v -race -coverprofile=coverage.out -covermode=atomic -tags=db ./... ./pgtype/... ./ginproc/...
       - curl -s https://codecov.io/bash | bash
     environment:
