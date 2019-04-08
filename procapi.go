@@ -17,6 +17,8 @@ import (
 
 // Config defines local application flags
 type Config struct {
+	DSN           string    `long:"dsn" default:"" description:"Database connect string, i.e. postgres://user:pass@host/dbname?sslmode=disable"`
+	Driver        string    `long:"driver" default:"postgres" description:"Database driver"`
 	InDefFunc     string    `long:"indef" default:"func_args" description:"Argument definition function"`
 	OutDefFunc    string    `long:"outdef" default:"func_result" description:"Result row definition function"`
 	IndexFunc     string    `long:"index" default:"index" description:"Available functions list"`
@@ -163,10 +165,40 @@ func New(cfg Config, log loggers.Contextual, dbh DB) *Service {
 
 // Method returns method by name
 func (srv *Service) SetSchemaSuffix(suffix string) *Service {
-	srv.mx.RLock()
-	defer srv.mx.RUnlock()
+	srv.mx.Lock()
+	defer srv.mx.Unlock()
 	srv.schemaSuffix = suffix
 	return srv
+}
+
+// Open opens DB connection
+func (srv *Service) Open() error {
+	srv.mx.RLock()
+	dbh := srv.dbh
+	srv.mx.RUnlock()
+	if dbh != nil {
+		return errors.New("dbh opened alreade")
+	}
+	dsn := srv.config.DSN
+	if dsn == "" {
+		// Use postgresql ENV vars
+		dsn = "postgres://?sslmode=disable"
+	}
+	conn, err := sqlx.Connect(srv.config.Driver, dsn)
+	if err != nil {
+		return err
+	}
+	srv.mx.Lock()
+	defer srv.mx.Unlock()
+	srv.dbh = MyDB{conn}
+	return nil
+}
+
+// Method returns method by name
+func (srv *Service) DB() DB {
+	srv.mx.RLock()
+	defer srv.mx.RUnlock()
+	return srv.dbh
 }
 
 // Method returns method by name
@@ -179,10 +211,13 @@ func (srv *Service) Method(name string) (Method, bool) {
 
 // LoadMethods load methods for nsp if given, all of methods otherwise
 func (srv *Service) LoadMethods() error {
-	if srv.dbh == nil {
+	srv.mx.RLock()
+	dbh := srv.dbh
+	srv.mx.RUnlock()
+	if dbh == nil {
 		return errors.New("dbh must be not nil")
 	}
-	tx, err := srv.dbh.Beginx()
+	tx, err := dbh.Beginx()
 	if err != nil {
 		return err
 	}
@@ -267,10 +302,13 @@ func (srv Service) Call(
 	method string,
 	args map[string]interface{},
 ) (interface{}, error) {
-	if srv.dbh == nil {
+	srv.mx.RLock()
+	dbh := srv.dbh
+	srv.mx.RUnlock()
+	if dbh == nil {
 		return nil, errors.New("dbh must be not nil")
 	}
-	tx, err := srv.dbh.Beginx()
+	tx, err := dbh.Beginx()
 	if err != nil {
 		return nil, err
 	}

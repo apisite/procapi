@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"time"
 
 	mapper "github.com/birkirb/loggers-mapper-logrus"
@@ -17,9 +16,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-
-	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq"
 )
 
 type ServerSuite struct {
@@ -47,18 +43,14 @@ func (ss *ServerSuite) SetupSuite() {
 
 	hook.Reset()
 
-	dsn := os.Getenv("DSN")
-	if dsn == "" {
-		// Use postgresql ENV vars
-		dsn = "postgres://?sslmode=disable"
-	}
-	conn, err := sqlx.Connect("postgres", dsn)
-	require.NoError(ss.T(), err)
-	db := MyDB{conn}
-	tx, err := db.Beginx()
+	ss.key = RandStringBytesRmndr(4)
+	s := New(ss.cfg, log, nil).SetSchemaSuffix(ss.key)
+	err = s.Open()
 	require.NoError(ss.T(), err)
 
-	ss.key = RandStringBytesRmndr(4)
+	db := s.DB()
+	tx, err := db.Beginx()
+	require.NoError(ss.T(), err)
 
 	//	ss.cfg.DB.LogLevel = "debug" // we count log lines
 	//	db, err := pgxpgcall.New(ss.cfg.DB, log)
@@ -77,7 +69,6 @@ func (ss *ServerSuite) SetupSuite() {
 		}
 	}
 
-	s := New(ss.cfg, log, nil).SetSchemaSuffix(ss.key)
 	err = s.LoadMethodsTx(tx)
 	require.NoError(ss.T(), err)
 
