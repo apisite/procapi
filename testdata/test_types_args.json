@@ -1,0 +1,35 @@
+{
+  "aint4": [
+    1,
+    2,
+    3
+  ],
+  "atext": [
+    "{\"b\":2}",
+    "{\"c\":3}"
+  ],
+  "tbool": true,
+  "tchar": "й",
+  "tdate": "2011-01-19T00:00:00Z",
+  "tfloat4": 12.34,
+  "tfloat8": 3456.789,
+  "tinet": "127.0.1.2/8",
+  "tint2": 2,
+  "tint4": 4,
+  "tint8": 8,
+  "tinterval": "10s",
+  "tjson": {
+    "precomputed": true,
+    "b": 2
+  },
+  "tjsonb": {
+    "precomputed": true,
+    "b": 2
+  },
+  "tmoney": 5678.9012,
+  "tnumeric": 7890.1234,
+  "ttext": "{\"precomputed\": true, \"b\":2}",
+  "ttime": "23:59:10",
+  "ttimestamp": "1997-12-17T15:37:16.1Z",
+  "ttimestamptz": "1997-12-17T15:37:16.1+03:00"
+}

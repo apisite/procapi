@@ -1,4 +1,4 @@
-package pgcall
+package procapi
 
 import (
 	"fmt"

@@ -1,5 +1,5 @@
-// Package ginpgcall implements a gin frontend for pgcall.
-package ginpgcall
+// Package ginproc implements a gin frontend for procapi.
+package ginproc
 
 import (
 	"encoding/json"

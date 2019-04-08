@@ -1,12 +1,12 @@
 <p align="center">
-  <a href="README.md#apisiteapicall">English</a> |
+  <a href="README.md#apisiteprocapi">English</a> |
   <span>Pусский</span>
 </p>
 
 ---
 
-# apisite/apicall
-> golang - библиотека для построения API на основе map.
+# apisite/procapi
+> API для хранимых процедур БД
 
 [![GoDoc][gd1]][gd2]
  [![codecov][cc1]][cc2]
@@ -16,18 +16,18 @@
  [![GitHub code size in bytes][sz]]()
  [![GitHub license][gl1]][gl2]
 
-[bs1]: https://cloud.drone.io/api/badges/apisite/pgcall/status.svg
-[bs2]: https://cloud.drone.io/apisite/pgcall
-[cc1]: https://codecov.io/gh/apisite/pgcall/branch/master/graph/badge.svg
-[cc2]: https://codecov.io/gh/apisite/pgcall
-[gd1]: https://godoc.org/github.com/apisite/pgcall?status.svg
-[gd2]: https://godoc.org/github.com/apisite/pgcall
-[gc1]: https://goreportcard.com/badge/github.com/apisite/tpl2x
-[gc2]: https://goreportcard.com/report/github.com/apisite/pgcall
-[gr1]: https://img.shields.io/github/release-pre/apisite/pgcall.svg
-[gr2]: https://github.com/apisite/pgcall/releases
-[sz]: https://img.shields.io/github/languages/code-size/apisite/pgcall.svg
-[gl1]: https://img.shields.io/github/license/apisite/pgcall.svg
+[bs1]: https://cloud.drone.io/api/badges/apisite/procapi/status.svg
+[bs2]: https://cloud.drone.io/apisite/procapi
+[cc1]: https://codecov.io/gh/apisite/procapi/branch/master/graph/badge.svg
+[cc2]: https://codecov.io/gh/apisite/procapi
+[gd1]: https://godoc.org/github.com/apisite/procapi?status.svg
+[gd2]: https://godoc.org/github.com/apisite/procapi
+[gc1]: https://goreportcard.com/badge/github.com/apisite/procapi
+[gc2]: https://goreportcard.com/report/github.com/apisite/procapi
+[gr1]: https://img.shields.io/github/release-pre/apisite/procapi.svg
+[gr2]: https://github.com/apisite/procapi/releases
+[sz]: https://img.shields.io/github/languages/code-size/apisite/procapi.svg
+[gl1]: https://img.shields.io/github/license/apisite/procapi.svg
 [gl2]: LICENSE
 
 ## Назначение
@@ -40,7 +40,7 @@
 
 Т.о., необходимо реализовать функцию вида:
 ```go
-func call(method string, args map[string]interface{}) ([]map[string]interface{}, error) {}
+func Call(method string, args map[string]interface{}) ([]map[string]interface{}, error) {}
 ```
 для случая, когда методы API представляют собой функции Postgresql.
 
@@ -57,9 +57,9 @@ func call(method string, args map[string]interface{}) ([]map[string]interface{},
 
 Библиотека разделена на следующие части:
 
-* [pgcall]() - реализация функции `Call`
-* [pgx-pgcall]() - функционал работы с БД postgresql посредством пакета jackc/pgx
-* [gin-pgcall]() - интеграция функционала в [gin](https://github.com/gin-gonic/gin)
+* [procapi]() - реализация функции `Call`
+* [pgx-procapi]() - функционал работы с БД postgresql посредством пакета jackc/pgx
+* [gin-procapi]() - интеграция функционала в [gin](https://github.com/gin-gonic/gin)
 
 ## Особенности реализации
 
@@ -69,7 +69,7 @@ func call(method string, args map[string]interface{}) ([]map[string]interface{},
 * доступ к реестру производится через вызовы специальных функций БД, что позволяет скрыть от потребителей внутренние функции (в перспективе это можно сделать через права доступа в БД)
 * маппинг между внешним именем функции и ее именем в БД позволяет прозрачно для клиента заменить вызываемую функцию (при совпадении сигнатур)
 
-### pgcall
+### procapi
 
 Для получения информации из реестра используются функции с зашитыми в код сигнатурами (их имена могут быть изменены в настройках):
 
@@ -77,11 +77,11 @@ func call(method string, args map[string]interface{}) ([]map[string]interface{},
 * InDefFunc (default:"func_args") - описание аргументов функции, вызывается запросом вида `select arg, type, required, def_val, anno from %s(code)`
 * OutDefFunc (default:"func_result") - описание результата функции, вызывается запросом вида `select arg, type, anno from %s(code)`
 
-### pgx-pgcall
+### pgx-procapi
 
-Реализует объект, отвечающий за взаимодействие с БД. Передается в pgcall как интерфейс [pgcall.DB](https://godoc.org/github.com/apisite/pgcall#DB)
+Реализует объект, отвечающий за взаимодействие с БД. Передается в procapi как интерфейс [procapi.DB](https://godoc.org/github.com/apisite/procapi#DB)
 
-### gin-pgcall
+### gin-procapi
 
 Добавляет в gin маршрутизацию для прямого вызова функций API и дополняет funcMap функциями доступа к API из шаблонов.
-Для работы с pgcall используется интерфейс [ginpgcall.Caller](https://godoc.org/github.com/apisite/pgcall/gin-pgcall#Caller)
+Для работы с procapi используется интерфейс [ginprocapi.Caller](https://godoc.org/github.com/apisite/procapi/gin-procapi#Caller)

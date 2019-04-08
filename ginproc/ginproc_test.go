@@ -1,6 +1,6 @@
-package ginpgcall
+package ginproc
 
-//go:generate mockgen -destination=generated_mock_test.go -package ginpgcall github.com/apisite/pgcall/gin-pgcall Caller
+//go:generate mockgen -destination=generated_mock_test.go -package ginproc github.com/apisite/procapi/ginproc Caller
 
 import (
 	"bytes"

@@ -11,7 +11,7 @@
     "In": {
       "nsp": {
         "Name": "a_nsp",
-        "Type": "text",
+        "Type": "text[]",
         "Required": false,
         "Anno": "Схема БД"
       }

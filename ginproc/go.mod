@@ -1,4 +1,4 @@
-module github.com/apisite/pgcall/gin-pgcall
+module github.com/apisite/procapi/ginproc
 
 go 1.12
 

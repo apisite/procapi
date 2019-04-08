@@ -6,28 +6,22 @@ steps:
     image: golang:1.12
     pull: true
     commands:
-      - go test -v -race -coverprofile=coverage.out -covermode=atomic ./... ./pgx-pgcall/... ./gin-pgcall/...
-      - go vet ./... ./pgx-pgcall/... ./gin-pgcall/...
+      - go test -v -race -coverprofile=coverage.out -covermode=atomic ./... ./pgtype/... ./ginproc/...
+      - go vet ./... ./pgtype/... ./ginproc/...
 
   - name: create-db
     image: postgres:11.2-alpine
-    commands:
-    - until pg_isready -q -U postgres -h database ; do sleep 1 ; echo -n "." ; done
-    - psql -U postgres --single-transaction -d test -h database -f testdata/schema.sql
-    environment:
-      WORKDIR: /drone/src/testdata
 
   - name: testing-db
     image: golang:1.12
     pull: true
     commands:
       - sleep 15
-      - go test -v -race -coverprofile=coverage.out -covermode=atomic -tags="db nocommon" ./... ./pgx-pgcall/... ./gin-pgcall/...
+      - go test -v -race -coverprofile=coverage.out -covermode=atomic -tags="db nocommon" ./... ./pgtype/... ./ginproc/...
       - curl -s https://codecov.io/bash | bash
     environment:
       CODECOV_TOKEN:
         from_secret: my-codecov-token
-      SCHEMA:      rpc,public
       PGHOST:      database
       PGDATABASE:  test
       PGUSER:      postgres

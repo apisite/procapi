@@ -2,7 +2,7 @@
   "index": [
     {
       "arg": "a_nsp",
-      "type": "text",
+      "type": "text[]",
       "required": false,
       "anno": "Схема БД"
     }

@@ -3,8 +3,7 @@
 SHELL         = /bin/bash
 CFG           = .env
 GO           ?= go
-SOURCES      ?= *.go *-pgcall/*.go
-GOSOURCES    ?= ./... ./pgx-pgcall/... ./gin-pgcall/...
+GOSOURCES    ?= ./... ./pgtype/... ./ginproc/...
 
 CODECOV_KEY   =
 
@@ -26,7 +25,7 @@ PGSSLMODE    ?= disable
 PGPASSWORD   ?= $(shell < /dev/urandom tr -dc A-Za-z0-9 | head -c14; echo)
 
 # Running postgresql container name for `docker exec`
-DB_CONTAINER ?= apicall_$(RANDOM_ID)
+DB_CONTAINER ?= procapi_$(RANDOM_ID)
 #dcape_db_1
 
 define CONFIG_DEFAULT
@@ -78,7 +77,7 @@ lint:
 
 ## Show coverage
 cov:
-	$(GO) test -coverprofile=coverage.out -race -covermode=atomic -v $(GOSOURCES)
+	TEST_UPDATE=yes $(GO) test -coverprofile=coverage.out -race -covermode=atomic -v $(GOSOURCES)
 
 ## Show coverage
 cov-db:
@@ -107,8 +106,8 @@ fmt:
 ## Run vet
 vet:
 	$(GO) vet *.go
-	$(GO) vet pgx-pgcall/*.go
-	$(GO) vet gin-pgcall/*.go
+	$(GO) vet pgtype/*.go
+	$(GO) vet ginproc/*.go
 
 # ------------------------------------------------------------------------------
 

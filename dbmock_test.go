@@ -1,12 +1,15 @@
 // +build !db
 
-package pgcall
+package procapi
 
-//go:generate mockgen -destination=generated_mock_test.go -package pgcall github.com/apisite/pgcall DB
+//go:generate mockgen -destination=generated_mock_test.go -package procapi -source=procapi.go DB,Tx,Rows,Result
 
 import (
 	"net/http"
 	"net/http/httptest"
+	"testing"
+
+	//	"github.com/jmoiron/sqlx"
 
 	mapper "github.com/birkirb/loggers-mapper-logrus"
 	"github.com/jessevdk/go-flags"
@@ -16,26 +19,25 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/mitchellh/mapstructure"
+
 	"github.com/golang/mock/gomock"
 )
 
-// Config holds all config vars
-type TestConfig struct {
-	Call Config `group:"PGFC Options" namespace:"pgcall"`
-}
 type ServerSuite struct {
 	suite.Suite
-	cfg  TestConfig
-	srv  *Server
+	cfg  Config
+	srv  *Service
 	hook *test.Hook
 	req  *http.Request
 	db   *MockDB
+	tx   *MockTx
 }
 
 func (ss *ServerSuite) SetupSuite() {
 
 	// Fill config with default values
-	p := flags.NewParser(&ss.cfg.Call, flags.Default)
+	p := flags.NewParser(&ss.cfg, flags.Default)
 	_, err := p.ParseArgs([]string{})
 	require.NoError(ss.T(), err)
 
@@ -52,12 +54,9 @@ func (ss *ServerSuite) SetupSuite() {
 	defer ctrl.Finish()
 
 	m := NewMockDB(ctrl)
-
 	ss.prepServer(ctrl, m)
-
-	s, err := New(ss.cfg.Call, log, m)
-	require.NoError(ss.T(), err)
-
+	s := New(ss.cfg, log, m)
+	s.LoadMethods()
 	ss.srv = s
 	ss.db = m
 
@@ -79,31 +78,37 @@ func (ss *ServerSuite) prepServer(ctrl *gomock.Controller, m *MockDB) {
 	var allFields map[string][]string
 	helperLoadJSON(t, "fields.json", &allFields)
 
-	//indexResp := NewMockRows(ctrl)
-	m.EXPECT().QueryProc("index", []interface{}{}).
-		Return(indexRows, nil)
-		//	expectTable(indexResp, allFields["index"], indexRows)
+	tx := NewMockTx(ctrl)
+
+	m.EXPECT().Beginx().
+		Return(tx, nil)
+
+	indexResp := NewMockRows(ctrl)
+	tx.EXPECT().Queryx("select * from rpc.index($1)", nil).
+		Return(indexResp, nil) //indexRows, nil)
+	expectStructTable(ss.T(), indexResp, indexRows, &Method{})
 
 	for _, method := range indexRows {
 		code := method["code"].(string)
+		argsResp := NewMockRows(ctrl)
+		a := []interface{}{code}
+		tx.EXPECT().Queryx("select * from rpc.func_args($1)", a).
+			Return(argsResp, nil) //allArgs[code], nil)
+		expectStructTable(ss.T(), argsResp, allArgs[code], &InDef{})
 
-		//		argsResp := NewMockRows(ctrl)
-		m.EXPECT().QueryProc("func_args", []interface{}{code}).
-			Return(allArgs[code], nil)
-			//		expectTable(argsResp, allFields["args"], allArgs[code])
-
-			//	resResp := NewMockRows(ctrl)
-		m.EXPECT().QueryProc("func_result", []interface{}{code}).
-			Return(allResult[code], nil)
-		// expectTable(resResp, allFields["result"], allResult[code])
-
+		resResp := NewMockRows(ctrl)
+		tx.EXPECT().Queryx("select * from rpc.func_result($1)", a). //[]interface{}{code}).
+										Return(resResp, nil) //allResult[code], nil)
+		expectStructTable(ss.T(), resResp, allResult[code], &OutDef{})
 	}
+	tx.EXPECT().Rollback().Return(nil)
 
 }
 
 func (ss *ServerSuite) TestCall() {
 
 	var allResult map[string][]map[string]interface{}
+	//var allResult map[string][]interface{} //map[string]interface{}
 	helperLoadJSON(ss.T(), "result.json", &allResult)
 	var allFields map[string][]string
 	helperLoadJSON(ss.T(), "fields.json", &allFields)
@@ -113,6 +118,9 @@ func (ss *ServerSuite) TestCall() {
 	m := ss.db
 
 	ss.hook.Reset()
+	tx := NewMockTx(ctrl)
+	m.EXPECT().Beginx().
+		Return(tx, nil)
 
 	tests := []struct {
 		name   string
@@ -124,18 +132,84 @@ func (ss *ServerSuite) TestCall() {
 		{name: "Res", method: "func_result", args: map[string]interface{}{"code": "index"}, res: allResult["index"]},
 	}
 	// If tests will grow - move the following inside test loop
-	//	indexResp := NewMockRows(ctrl)
-	m.EXPECT().QueryMaps("select arg, type, anno from rpc.func_result(a_code := $1)", []interface{}{"index"}).
-		Return(allResult["index"], nil)
-		//	expectTable(indexResp, allFields["result"], allResult["index"])
+	indexResp := NewMockRows(ctrl)
+	tx.EXPECT().Queryx("select arg, type, anno from rpc.func_result(a_code := $1)", []interface{}{"index"}).
+		Return(indexResp, nil) //allResult["index"]
+	expectMapTable(ss.T(), indexResp, allResult["index"])
+	tx.EXPECT().Commit().Return(nil)
 
 	for _, tt := range tests {
 		rv, err := ss.srv.Call(ss.req, tt.method, tt.args)
 		require.NoError(ss.T(), err)
-		assert.Equal(ss.T(), tt.res, rv)
+		v, ok := rv.([]interface{})
+		assert.True(ss.T(), ok)
+		v1 := []map[string]interface{}{}
+		for _, s := range v {
+			z, ok := s.(map[string]interface{})
+			assert.True(ss.T(), ok)
+			v1 = append(v1, z)
+		}
+
+		assert.Equal(ss.T(), tt.res, v1)
 	}
 
 	// Two debug lines about required arg + SQL
 	ss.printLogs()                                // show logs
 	assert.Equal(ss.T(), 3, len(ss.hook.Entries)) // count logs
+
+}
+
+func expectStructTable(t *testing.T, rows *MockRows, maps []map[string]interface{}, rowStruct interface{}) {
+	for _, m := range maps {
+		rows.EXPECT().Next().
+			Return(true)
+		rows.EXPECT().StructScan(rowStruct).DoAndReturn(
+			func(x map[string]interface{}) func(v interface{}) error {
+				return func(v interface{}) error {
+					err := decode(x, v)
+					require.NoError(t, err)
+					return nil
+				}
+			}(m))
+	}
+	rows.EXPECT().Next().
+		Return(false)
+	rows.EXPECT().Close()
+
+}
+func expectMapTable(t *testing.T, rows *MockRows, maps []map[string]interface{}) {
+	for _, m := range maps {
+		rows.EXPECT().Next().
+			Return(true)
+		z := map[string]interface{}{}
+		rows.EXPECT().MapScan(z).DoAndReturn(
+			func(x map[string]interface{}) func(rv map[string]interface{}) error {
+				return func(rv map[string]interface{}) error {
+					for k, v := range x {
+						rv[k] = v
+					}
+					return nil
+				}
+			}(m))
+	}
+	rows.EXPECT().Next().
+		Return(false)
+	rows.EXPECT().Close()
+
+}
+
+// decode fills struct from map using ithub.com/mitchellh/mapstructure
+func decode(input interface{}, output interface{}) error {
+	config := &mapstructure.DecoderConfig{
+		Metadata: nil,
+		Result:   output,
+		TagName:  "db",
+	}
+
+	decoder, err := mapstructure.NewDecoder(config)
+	if err != nil {
+		return err
+	}
+
+	return decoder.Decode(input)
 }
