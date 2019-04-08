@@ -1,5 +1,4 @@
-# gin-pgcall
-> [gin-pgcall](https://github.com/apisite/pgcall/gin-pgcall) is a [Gin](https://gin-gonic.github.io/gin/) bindings for pgcall
+# procapi/ginproc
+> [ginproc](https://github.com/apisite/procapi/tree/master/ginproc) is a [Gin](https://gin-gonic.github.io/gin/) bindings module for procapi
 
 * Project status: in active development
-

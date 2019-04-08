@@ -163,11 +163,19 @@ func New(cfg Config, log loggers.Contextual, dbh DB) *Service {
 	return &srv
 }
 
-// Method returns method by name
+// SetSchemaSuffix sets suffix for all of used shemas names
 func (srv *Service) SetSchemaSuffix(suffix string) *Service {
 	srv.mx.Lock()
 	defer srv.mx.Unlock()
 	srv.schemaSuffix = suffix
+	return srv
+}
+
+// SetMarshaller allows to change internal pgtype Marshaller to another one
+func (srv *Service) SetMarshaller(m Marshaller) *Service {
+	srv.mx.Lock()
+	defer srv.mx.Unlock()
+	srv.typeM = m
 	return srv
 }
 
