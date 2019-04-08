@@ -6,11 +6,13 @@ steps:
     image: golang:1.12
     pull: true
     commands:
-      - go test -v -race -coverprofile=coverage.out -covermode=atomic ./... ./pgtype/... ./ginproc/...
+      - go test -v -race -coverprofile=coverage.txt -covermode=atomic ./... ./pgtype/... ./ginproc/...
       - go vet ./... ./pgtype/... ./ginproc/...
 
   - name: create-db
     image: postgres:11.2-alpine
+    commands:
+    - until pg_isready -q -U postgres -h database ; do sleep 1 ; echo -n "." ; done
 
   - name: testing-db
     image: golang:1.12
@@ -25,7 +27,7 @@ steps:
       PGHOST:      database
       PGDATABASE:  test
       PGUSER:      postgres
-      PGAPPNAME:   pgcall
+      PGAPPNAME:   procapi
 
 services:
   - name: database
