@@ -1,6 +1,6 @@
 // +build docker
 
-package pgcall
+package procapi
 
 // WIP: base for test with internal docker starts
 // code based on https://medium.com/@povilasve/go-advanced-tips-tricks-a872503ac859

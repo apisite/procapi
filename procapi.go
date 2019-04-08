@@ -297,7 +297,7 @@ func (srv *Service) FetchMethods(tx Tx, nsp *[]string) (map[string]Method, error
 }
 
 // Call calls postgresql stored function
-func (srv Service) Call(
+func (srv *Service) Call(
 	r *http.Request, // TODO: interface to session & request data
 	method string,
 	args map[string]interface{},
@@ -323,7 +323,7 @@ func (srv Service) Call(
 }
 
 // CallTx calls postgresql stored function within given transaction
-func (srv Service) CallTx( //r *http.Request,
+func (srv *Service) CallTx( //r *http.Request,
 	tx Tx,
 	method string,
 	args map[string]interface{},
@@ -425,7 +425,7 @@ func (srv Service) CallTx( //r *http.Request,
 }
 
 // namedArgs returns data for building proc call with named args
-func (srv Service) namedArgs(
+func (srv *Service) namedArgs(
 	inDef map[string]InDef,
 	args map[string]interface{},
 ) (
