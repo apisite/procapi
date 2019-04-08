@@ -18,8 +18,8 @@ steps:
     image: golang:1.12
     pull: true
     commands:
-      - sleep 15
-      - go test -v -race -coverprofile=coverage.out -covermode=atomic -tags="db nocommon" ./... ./pgtype/... ./ginproc/...
+      - git submodule update
+      - go test -v -race -coverprofile=coverage.out -covermode=atomic -tags=db ./... ./pgtype/... ./ginproc/...
       - curl -s https://codecov.io/bash | bash
     environment:
       CODECOV_TOKEN:

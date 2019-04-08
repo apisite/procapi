@@ -77,16 +77,16 @@ lint:
 
 ## Show coverage
 cov:
-	TEST_UPDATE=yes $(GO) test -coverprofile=coverage.out -race -covermode=atomic -v $(GOSOURCES)
+	TEST_UPDATE=yes $(GO) test -coverprofile=coverage.txt -race -covermode=atomic -v $(GOSOURCES)
 
 ## Show coverage
 cov-db:
 	SCHEMA="rpc,public" TZ="Europe/Berlin" \
-	$(GO) test -coverprofile=coverage.out -race -covermode=atomic -tags="db nocommon" -v $(GOSOURCES)
+	$(GO) test -coverprofile=coverage.out -race -covermode=atomic -tags=db -v $(GOSOURCES)
 
 cov-db-upd:
 	SCHEMA="rpc,public" TEST_UPDATE=yes \
-	$(GO) test -coverprofile=coverage.out -race -covermode=atomic -tags="db nocommon" -v $(GOSOURCES)
+	$(GO) test -coverprofile=coverage.out -race -covermode=atomic -tags=db -v $(GOSOURCES)
 
 ## Show package coverage in html
 cov-html:

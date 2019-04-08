@@ -64,9 +64,7 @@ func (ss *ServerSuite) SetupSuite() {
 	for _, schema := range []string{"poma", "rpc", "rpc_testing"} {
 		aliases[schema] = schema + "_" + ss.key
 		err = loadPath(tx, schema, aliases)
-		if err != nil {
-			return
-		}
+		require.NoError(ss.T(), err)
 	}
 
 	err = s.LoadMethodsTx(tx)
