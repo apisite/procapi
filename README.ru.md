@@ -82,7 +82,7 @@ func Call(method string, args map[string]interface{}) ([]map[string]interface{},
 Варианты запуска Postgresql
 
 1. Внешний, в настройках задаются параметры соединения, пользователь и БД должны существовать
-2. Внутренний (с помощью docker). Для запуска необходимо в отдельной консои выоплнить `make test-docker-run` 
+2. Внутренний (с помощью docker). Для запуска необходимо в отдельной консоли выполнить `make test-docker-run`
 
 В любом из этих случаев, при выполнении тестов будут созданы и наполнены данными 3 схемы БД, которые после выполнения тестов будут удалены (по завершении тестов выполняется `ROLLBACK`).
 
@@ -118,7 +118,7 @@ git submodule update
 
 ### pgtype
 
-Модуль предназначен для обработки случаев, когда [sqlx](https://github.com/jmoiron/sqlx) не конвертирует полученные из БД значения необходимым для API образом. Код реализовывает интерфейс [Marshaller](https://godoc.org/github.com/apisite/procapi#Marshaller) и может быть заменен другим с помощью вызова `SetMarshaller(m Marshaller)`.
+Модуль предназначен для обработки случаев, когда [sqlx](https://github.com/jmoiron/sqlx) не конвертирует полученные из БД значения необходимым для API образом. Код реализовывает интерфейс [Marshaller](https://godoc.org/github.com/apisite/procapi#Marshaller) и может быть заменен другим с помощью вызова [SetMarshaller](https://godoc.org/github.com/apisite/procapi#Service.SetMarshaller).
 
 ### ginproc
 
