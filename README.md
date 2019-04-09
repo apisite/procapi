@@ -13,6 +13,7 @@
  [![Build Status][bs1]][bs2]
  [![GoCard][gc1]][gc2]
  [![GitHub Release][gr1]][gr2]
+ ![LoC][loc]
  [![GitHub code size in bytes][sz]]()
  [![GitHub license][gl1]][gl2]
 
@@ -27,6 +28,7 @@
 [gr1]: https://img.shields.io/github/release-pre/apisite/procapi.svg
 [gr2]: https://github.com/apisite/procapi/releases
 [sz]: https://img.shields.io/github/languages/code-size/apisite/procapi.svg
+[loc]: https://www.elfire.ru/badges/github/apisite/procapi.svg "Lines of Code"
 [gl1]: https://img.shields.io/github/license/apisite/procapi.svg
 [gl2]: LICENSE
 
