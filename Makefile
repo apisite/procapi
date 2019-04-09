@@ -105,7 +105,7 @@ fmt:
 
 ## Run vet
 vet:
-	$(GO) vet *.go
+	$(GO) vet -tags db *.go
 	$(GO) vet pgtype/*.go
 	$(GO) vet ginproc/*.go
 
@@ -153,6 +153,10 @@ psql:
 # Stop postgresql via docker
 test-docker-stop:
 	docker stop $$DB_CONTAINER
+
+# Count lines of code (including tests)
+cloc:
+	cloc --by-file --not-match-f='(_mock_test.go|.sql|ml|Makefile|resource.go)$$' .
 
 # ------------------------------------------------------------------------------
 
