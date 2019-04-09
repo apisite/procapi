@@ -13,7 +13,7 @@
  [![Build Status][bs1]][bs2]
  [![GoCard][gc1]][gc2]
  [![GitHub Release][gr1]][gr2]
- ![Lines Of code](loc.svg "Lines of code")
+ ![LoC](loc.svg "Lines of code")
  [![GitHub code size in bytes][sz]]()
  [![GitHub license][gl1]][gl2]
 
