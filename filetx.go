@@ -6,14 +6,11 @@ import (
 	"path/filepath"
 	"strings"
 	//"github.com/olekukonko/tablewriter"
-
-	//"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq"
 )
 
 const (
 	SQLInit  = `CREATE SCHEMA %s; SET SEARCH_PATH = %s, public;`
-	SQLReset = `RESET SEARCH_PATH;`
+	SQLReset = `RESET SEARCH_PATH;` // TODO: reset after load
 )
 
 func loadPath(tx Tx, schema string, aliases map[string]string) error {
@@ -26,9 +23,10 @@ func loadPath(tx Tx, schema string, aliases map[string]string) error {
 	}
 
 	path := filepath.Join("testdata", schema)
-	files, _ := filepath.Glob(path + "/[1-7]?_*.sql")
+	files, _ := filepath.Glob(path + "/[1-7]?_*.sql") // load only files with sources
 	for _, f := range files {
 		if strings.Contains(f, "/1") && !(strings.Contains(f, "/18") || strings.Contains(f, "/19")) {
+			// skip pkg setup files
 			continue
 		}
 		fmt.Printf("Load %s\n", f)
@@ -36,12 +34,10 @@ func loadPath(tx Tx, schema string, aliases map[string]string) error {
 		if err != nil {
 			return err
 		}
-
 		sql := string(s)
 		for k, v := range aliases {
 			sql = strings.ReplaceAll(sql, k+".", v+".")
 		}
-
 		_, err = tx.Exec(sql)
 		if err != nil {
 			return err

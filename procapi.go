@@ -1,7 +1,6 @@
 package procapi
 
 import (
-	"database/sql"
 	"fmt"
 	"github.com/pkg/errors"
 	"net/http"
@@ -9,15 +8,13 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/apisite/procapi/pgtype"
 	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq"
 	"gopkg.in/birkirb/loggers.v1"
 )
 
 // Config defines local application flags
 type Config struct {
-	DSN           string    `long:"dsn" default:"" description:"Database connect string, i.e. postgres://user:pass@host/dbname?sslmode=disable"`
+	DSN           string    `long:"dsn" default:"postgres://?sslmode=disable" description:"Database connect string"`
 	Driver        string    `long:"driver" default:"postgres" description:"Database driver"`
 	InDefFunc     string    `long:"indef" default:"func_args" description:"Argument definition function"`
 	OutDefFunc    string    `long:"outdef" default:"func_result" description:"Result row definition function"`
@@ -65,87 +62,6 @@ type Method struct {
 	Out      []OutDef         //`json:",omitempty"`
 }
 
-type Result interface {
-	RowsAffected() (int64, error)
-}
-
-type Rows interface {
-	StructScan(dest interface{}) error
-	MapScan(dest map[string]interface{}) error
-	Scan(dest ...interface{}) error
-	Close() error
-	Next() bool
-}
-
-// Tx holds all of database transaction methods used
-type Tx interface {
-	Queryx(query string, args ...interface{}) (Rows, error)
-	Exec(query string, args ...interface{}) (Result, error)
-	Rollback() error
-	Commit() error
-}
-
-// DB holds all of database methods used
-type DB interface {
-	Beginx() (Tx, error)
-	Close() error
-}
-
-// DB holds all of database methods used
-type MyDB struct {
-	*sqlx.DB
-}
-
-func (db MyDB) Beginx() (Tx, error) {
-	tx, err := db.DB.Beginx()
-	if err != nil {
-		return nil, err
-	}
-	return myTx{tx}, nil
-}
-func (db MyDB) Close() error {
-	return db.DB.Close()
-}
-
-type myTx struct {
-	*sqlx.Tx
-}
-
-func (tx myTx) Queryx(query string, args ...interface{}) (Rows, error) {
-	rows, err := tx.Tx.Queryx(query, args...)
-	if err != nil {
-		return nil, err
-	}
-	return myRows{rows}, nil
-}
-func (tx myTx) Exec(query string, args ...interface{}) (Result, error) {
-	res, err := tx.Tx.Exec(query, args...)
-	if err != nil {
-		return nil, err
-	}
-	return myResult{res}, nil
-}
-
-type myRows struct {
-	*sqlx.Rows
-}
-
-type myResult struct {
-	sql.Result
-}
-
-/*
-func (res MResult) RowsAffected() (int64, error) {
-	return res.Result.RowsAffected()
-}
-*/
-
-// Marshalle rholds all of database methods used
-type Marshaller interface {
-	Marshal(typ string, v interface{}) (interface{}, error)
-	Unmarshal(typ string, data interface{}) (rv interface{}, err error)
-}
-
 // Service holds API service methods
 type Service struct {
 	dbh          DB
@@ -159,7 +75,7 @@ type Service struct {
 
 // New returns procapi service
 func New(cfg Config, log loggers.Contextual, dbh DB) *Service {
-	srv := Service{log: log, config: cfg, dbh: dbh, typeM: pgtype.New()}
+	srv := Service{log: log, config: cfg, dbh: dbh}
 	return &srv
 }
 
@@ -171,7 +87,13 @@ func (srv *Service) SetSchemaSuffix(suffix string) *Service {
 	return srv
 }
 
-// SetMarshaller allows to change internal pgtype Marshaller to another one
+// Marshaller holds methods for database values marshalling
+type Marshaller interface {
+	Marshal(typ string, v interface{}) (interface{}, error)
+	Unmarshal(typ string, data interface{}) (rv interface{}, err error)
+}
+
+// SetMarshaller sets marshaller
 func (srv *Service) SetMarshaller(m Marshaller) *Service {
 	srv.mx.Lock()
 	defer srv.mx.Unlock()
@@ -185,20 +107,15 @@ func (srv *Service) Open() error {
 	dbh := srv.dbh
 	srv.mx.RUnlock()
 	if dbh != nil {
-		return errors.New("dbh opened alreade")
+		return errors.New("dbh opened already")
 	}
-	dsn := srv.config.DSN
-	if dsn == "" {
-		// Use postgresql ENV vars
-		dsn = "postgres://?sslmode=disable"
-	}
-	conn, err := sqlx.Connect(srv.config.Driver, dsn)
+	conn, err := sqlx.Connect(srv.config.Driver, srv.config.DSN)
 	if err != nil {
 		return err
 	}
 	srv.mx.Lock()
 	defer srv.mx.Unlock()
-	srv.dbh = MyDB{conn}
+	srv.dbh = myDB{conn}
 	return nil
 }
 
@@ -316,6 +233,9 @@ func (srv *Service) Call(
 	if dbh == nil {
 		return nil, errors.New("dbh must be not nil")
 	}
+	if srv.typeM == nil {
+		return nil, errors.New("type marshaller must be not nil")
+	}
 	tx, err := dbh.Beginx()
 	if err != nil {
 		return nil, err
@@ -386,14 +306,21 @@ func (srv *Service) CallTx( //r *http.Request,
 		strings.Join(inAssigns, ", "),
 	)
 	srv.log.Debugf("sql: %s, args: %v\n", sql, inVars)
-	var rv []interface{}
-	var err error
 
 	rows, err := tx.Queryx(sql, inVars...)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
+
+	return fetch(methodSpec, srv.typeM, rows)
+}
+
+func fetch(methodSpec Method, mars Marshaller, rows Rows) (interface{}, error) {
+
+	var rv []interface{}
+	var err error
+
 	for rows.Next() {
 		var r interface{}
 		if methodSpec.IsStruct {
@@ -406,7 +333,7 @@ func (srv *Service) CallTx( //r *http.Request,
 				if m[c.Name] == nil {
 					continue
 				}
-				out, err := srv.typeM.Unmarshal(c.Type, m[c.Name])
+				out, err := mars.Unmarshal(c.Type, m[c.Name])
 				if err != nil {
 					return nil, err
 				}

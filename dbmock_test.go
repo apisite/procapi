@@ -22,6 +22,8 @@ import (
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/golang/mock/gomock"
+
+	"github.com/apisite/procapi/pgtype"
 )
 
 type ServerSuite struct {
@@ -55,7 +57,8 @@ func (ss *ServerSuite) SetupSuite() {
 
 	m := NewMockDB(ctrl)
 	ss.prepServer(ctrl, m)
-	s := New(ss.cfg, log, m)
+	s := New(ss.cfg, log, m).SetMarshaller(pgtype.New())
+
 	s.LoadMethods()
 	ss.srv = s
 	ss.db = m

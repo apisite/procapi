@@ -16,6 +16,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/apisite/procapi/pgtype"
 )
 
 type ServerSuite struct {
@@ -44,7 +46,10 @@ func (ss *ServerSuite) SetupSuite() {
 	hook.Reset()
 
 	ss.key = RandStringBytesRmndr(4)
-	s := New(ss.cfg, log, nil).SetSchemaSuffix(ss.key)
+	s := New(ss.cfg, log, nil).
+		SetSchemaSuffix(ss.key).
+		SetMarshaller(pgtype.New())
+
 	err = s.Open()
 	require.NoError(ss.T(), err)
 
