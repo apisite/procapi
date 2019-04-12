@@ -17,57 +17,58 @@ func New() *PGType {
 	return &PGType{}
 }
 
-func (t PGType) Marshal(typ string, v interface{}) (a interface{}, err error) {
-
+func (t PGType) Marshal(typ string, val interface{}) (rv interface{}, err error) {
 	if strings.HasSuffix(typ, "[]") {
-		a = pq.Array(v)
+		rv = pq.Array(val)
 	} else if typ == "json" || typ == "jsonb" {
-		a, err = json.Marshal(v)
+		rv, err = json.Marshal(val)
 	} else {
-		a = v
+		rv = val
 	}
 	return
 }
 
-func (t PGType) Unmarshal(typ string, data interface{}) (rv interface{}, err error) {
+func (t PGType) Unmarshal(typ string, val interface{}) (rv interface{}, err error) {
 	switch typ {
 	case "text[]":
 		var x pq.StringArray
-		x.Scan(data)
+		x.Scan(val)
 		rv = x
 	case "integer[]":
 		var x pq.Int64Array
-		x.Scan(data)
+		x.Scan(val)
 		rv = x
 	case "json":
 		var x types.JSONText
-		x.Scan(data)
+		x.Scan(val)
 		rv = json.RawMessage(x)
 	case "jsonb":
 		var x types.JSONText
-		x.Scan(data)
+		x.Scan(val)
 		rv = json.RawMessage(x)
 	case "character":
-		rv = string(data.([]byte))
+		rv = string(val.([]byte))
+	case "name":
+		rv = string(val.([]byte))
 	case "interval":
 		var src pgtype.Interval
-		src.DecodeText(nil, data.([]byte))
+		src.DecodeText(nil, val.([]byte))
 		var x time.Duration
 		x = time.Duration(src.Microseconds) * time.Microsecond // TODO: +Days* + Months*
 		rv = x.String()
 	case "inet":
-		rv = string(data.([]byte))
+		rv = string(val.([]byte))
 	case "money":
 		// TODO: convert "$5,678.90" -> 5678.90 ?
-		rv = string(data.([]byte))
+		rv = string(val.([]byte))
 	case "numeric":
 		var src pgtype.Numeric
-		src.DecodeText(nil, data.([]byte))
+		src.DecodeText(nil, val.([]byte))
 		var x float64
 		src.AssignTo(&x)
 		rv = x
 	default:
-		rv = data
+		rv = val
 		//					log.Printf("Skip %s: %v", c.Name, c.Type)
 	}
 	return rv, nil
