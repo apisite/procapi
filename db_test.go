@@ -75,6 +75,8 @@ func (ss *ServerSuite) SetupSuite() {
 	err = s.LoadMethodsTx(tx)
 	require.NoError(ss.T(), err)
 
+	helperCheckTestUpdate("methods", s.methods)
+
 	ss.srv = s
 	ss.tx = tx
 	ss.conn = db
@@ -100,32 +102,28 @@ func (ss *ServerSuite) TestCall() {
 	ss.hook.Reset()
 
 	tx := ss.tx
-	//log := ss.srv.log
-
-	//	Methods, err = Load(tx, key)
-	checkTestUpdate("methods", ss.srv.methods)
-
-	rv, err := ss.srv.CallTx(tx, "test_args", map[string]interface{}{"name": "xx"})
+	var str1 interface{} = "xx"
+	rv, err := ss.srv.CallTx(tx, "test_args", map[string]interface{}{"name": &str1})
 	require.NoError(ss.T(), err)
 
-	assert.Equal(ss.T(), "xx", rv)
+	assert.Equal(ss.T(), &str1, rv)
 
 	args := map[string]interface{}{}
-	helperLoadJSON(ss.T(), "test_types_args.json", &args)
+	helperLoadJSON(ss.T(), "test_types_args", &args)
 
 	rv, err = ss.srv.CallTx(tx, "test_types", args)
 	require.NoError(ss.T(), err)
 	rv0 := rv.([]interface{})[0]
-	checkTestUpdate("test_types_args", rv0)
-	checkTestUpdate("test_types_rv", rv)
+	helperCheckTestUpdate("test_types_args", rv0)
+	helperCheckTestUpdate("test_types_rv", rv)
 
-	rvWant := []interface{}{} //map[string]interface{}{}
-	helperLoadJSON(ss.T(), "test_types_rv.json", &rvWant)
+	rvWant := []interface{}{}
+	helperLoadJSON(ss.T(), "test_types_rv", &rvWant)
 
 	data, err := json.Marshal(rv)
 	require.NoError(ss.T(), err)
 
-	rvGot := []interface{}{} //map[string]interface{}{}
+	rvGot := []interface{}{}
 	err = json.Unmarshal(data, &rvGot)
 	require.NoError(ss.T(), err)
 
@@ -141,4 +139,14 @@ func (ss *ServerSuite) TestCall() {
 
 	tstz, _ := time.Parse("02.01.2006 15:04:05.00 Z0700 MST", "17.12.1997 13:37:16.10 +0100 CET")
 	assert.Equal(ss.T(), tstz.String(), cet.(time.Time).String())
+}
+
+func (ss *ServerSuite) TestCallVoid() {
+
+	ss.hook.Reset()
+
+	tx := ss.tx
+
+	_, err := ss.srv.CallTx(tx, "test_void", map[string]interface{}{"code": "arg"})
+	require.NoError(ss.T(), err)
 }

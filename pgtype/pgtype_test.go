@@ -54,6 +54,8 @@ func TestPGType_Marshal(t *testing.T) {
 }
 
 func TestPGType_Unmarshal(t *testing.T) {
+	str1 := `{"b":2}`
+	str2 := `{"c":3}`
 	tests := []struct {
 		name    string
 		typ     string
@@ -62,7 +64,7 @@ func TestPGType_Unmarshal(t *testing.T) {
 		wantErr bool
 	}{
 		{typ: "integer[]", val: []uint8{123, 49, 44, 50, 44, 51, 125}, rv: pq.Int64Array([]int64{1, 2, 3})},
-		{typ: "text[]", val: []uint8{123, 34, 123, 92, 34, 98, 92, 34, 58, 50, 125, 34, 44, 34, 123, 92, 34, 99, 92, 34, 58, 51, 125, 34, 125}, rv: pq.StringArray([]string{`{"b":2}`, `{"c":3}`})},
+		{typ: "text[]", val: []uint8{123, 34, 123, 92, 34, 98, 92, 34, 58, 50, 125, 34, 44, 34, 123, 92, 34, 99, 92, 34, 58, 51, 125, 34, 125}, rv: []*string{&str1, &str2}},
 		//	{typ: "json", val: []uint8{123, 34, 98, 34, 58, 50, 44, 34, 112, 114, 101, 99, 111, 109, 112, 117, 116, 101, 100, 34, 58, 116, 114, 117, 101, 125}, rv: 1},
 		//	{typ: "jsonb", val: []uint8{123, 34, 98, 34, 58, 32, 50, 44, 32, 34, 112, 114, 101, 99, 111, 109, 112, 117, 116, 101, 100, 34, 58, 32, 116, 114, 117, 101, 125}, rv: 1},
 		{typ: "character", val: []uint8{208, 185}, rv: "й"},

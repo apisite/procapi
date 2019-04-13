@@ -13,7 +13,7 @@
  [![Build Status][bs1]][bs2]
  [![GoCard][gc1]][gc2]
  [![GitHub Release][gr1]][gr2]
- ![LoC][loc]
+ [![LoC][loc1]][loc2]
  [![GitHub code size in bytes][sz]]()
  [![GitHub license][gl1]][gl2]
 
@@ -28,12 +28,13 @@
 [gr1]: https://img.shields.io/github/release-pre/apisite/procapi.svg
 [gr2]: https://github.com/apisite/procapi/releases
 [sz]: https://img.shields.io/github/languages/code-size/apisite/procapi.svg
-[loc]: https://www.elfire.ru/badges/github/apisite/procapi.svg "Lines of Code"
+[loc1]: .loc.svg "Lines of Code"
+[loc2]: LOC.md
 [gl1]: https://img.shields.io/github/license/apisite/procapi.svg
 [gl2]: LICENSE
 
 <p align="center">
-<a target="_blank" rel="noopener noreferrer" href="../src/arch.png"><img src="docs/src/arch.png" title="Архитектура проекта" style="max-width:100%;"></a>
+<a target="_blank" rel="noopener noreferrer" href="arch.png"><img src="arch.png" title="Архитектура проекта" style="max-width:100%;"></a>
 </p>
 
 **Project status:** WIP

@@ -2,13 +2,12 @@ package procapi
 
 import (
 	"fmt"
-	"github.com/pkg/errors"
 	"net/http"
 	"reflect"
 	"strings"
 	"sync"
 
-	"github.com/jmoiron/sqlx"
+	"github.com/jmoiron/sqlx" // for sqlx.Connect only
 	"gopkg.in/birkirb/loggers.v1"
 )
 
@@ -107,7 +106,7 @@ func (srv *Service) Open() error {
 	dbh := srv.dbh
 	srv.mx.RUnlock()
 	if dbh != nil {
-		return errors.New("dbh opened already")
+		return &callError{code: errNotNilDB}
 	}
 	conn, err := sqlx.Connect(srv.config.Driver, srv.config.DSN)
 	if err != nil {
@@ -140,7 +139,7 @@ func (srv *Service) LoadMethods() error {
 	dbh := srv.dbh
 	srv.mx.RUnlock()
 	if dbh == nil {
-		return errors.New("dbh must be not nil")
+		return &callError{code: errNilDB}
 	}
 	tx, err := dbh.Beginx()
 	if err != nil {
@@ -231,10 +230,7 @@ func (srv *Service) Call(
 	dbh := srv.dbh
 	srv.mx.RUnlock()
 	if dbh == nil {
-		return nil, errors.New("dbh must be not nil")
-	}
-	if srv.typeM == nil {
-		return nil, errors.New("type marshaller must be not nil")
+		return nil, &callError{code: errNilDB}
 	}
 	tx, err := dbh.Beginx()
 	if err != nil {
@@ -256,6 +252,10 @@ func (srv *Service) CallTx( //r *http.Request,
 	method string,
 	args map[string]interface{},
 ) (interface{}, error) {
+	// Check for Marshaller is set
+	if srv.typeM == nil {
+		return nil, &callError{code: errNilMarshaller}
+	}
 	// Lookup method.
 	methodSpec, ok := srv.Method(method)
 	if !ok {
@@ -265,15 +265,19 @@ func (srv *Service) CallTx( //r *http.Request,
 	var missedArgs []string
 	var inAssigns []string
 	var inVars []interface{}
+	var err error
 
 	if methodSpec.In != nil {
-		missedArgs, inAssigns, inVars = srv.namedArgs(methodSpec.In, args)
+		missedArgs, inAssigns, inVars, err = srv.namedArgs(methodSpec.In, args)
+	}
+	if err != nil {
+		return nil, err
 	}
 	if len(missedArgs) > 0 {
 		return nil, (&callError{code: errArgsMissed}).addContext("args", missedArgs)
 	}
 
-	if methodSpec.Out == nil && methodSpec.Result == nil {
+	if methodSpec.Result != nil && *methodSpec.Result == "void" {
 		// no data returned
 		sql := fmt.Sprintf("SELECT %s.%s(%s)",
 			methodSpec.Class,
@@ -352,9 +356,10 @@ func fetch(methodSpec Method, mars Marshaller, rows Rows) (interface{}, error) {
 
 	if !methodSpec.IsSet {
 		if len(rv) != 1 {
-			return nil, errors.New("single row must be returned")
+			return nil, &callError{code: errNotSingleRV}
 		}
-		return rv[0], nil
+		rv0 := rv[0]
+		return &rv0, nil // might be null
 	}
 	return rv, nil
 }
@@ -367,6 +372,7 @@ func (srv *Service) namedArgs(
 	missedArgs []string,
 	inAssigns []string,
 	inVars []interface{},
+	err error,
 ) {
 	log := srv.log
 	log.Debugf("IN args: %+v", inDef)
@@ -393,10 +399,14 @@ func (srv *Service) namedArgs(
 			}
 		}
 		inAssigns = append(inAssigns, fmt.Sprintf("%s %s $%d", v.Name, srv.config.ArgSyntax, len(inAssigns)+1))
-		out, err := srv.typeM.Marshal(v.Type, a)
-		if err != nil {
-			log.Debugf("Use: %s (%+v)", k, a)
-			continue
+		out, e := srv.typeM.Marshal(v.Type, a)
+		if e != nil {
+			err = (&callError{code: errArgCast}).
+				addContext("arg", v.Name).
+				addContext("type", v.Type).
+				addContext("val", a).
+				addContext("err", e)
+			return
 		}
 		a = out
 

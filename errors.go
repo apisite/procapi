@@ -29,6 +29,11 @@ const (
 	errNotFound
 	errArgsMissed
 	errBadRequest
+	errNotNilDB
+	errNilDB
+	errNilMarshaller
+	errNotSingleRV
+	errArgCast
 	errInternal
 )
 
@@ -55,6 +60,11 @@ func (ce callError) Code() string {
 		"MethodNotFound",
 		"RequiredArgsMissed",
 		"BadRequest",
+		"NotNilDB",
+		"NilDB",
+		"NilMarshaller",
+		"NotSingleRV",
+		"ArgCast",
 		"Internal",
 	}
 	if ce.code > errInternal {
@@ -71,6 +81,11 @@ func (ce callError) Message() string {
 		"Method not found",
 		"Required arg(s) missed",
 		"BadRequest",
+		"DB opened already",
+		"DB must be not nil",
+		"Type marshaller must be not nil",
+		"Single row must be returned",
+		"Cannot parse arg",
 		"Internal",
 	}
 	if ce.code > errInternal {

@@ -13,6 +13,7 @@ const (
 	SQLReset = `RESET SEARCH_PATH;` // TODO: reset after load
 )
 
+// loadPath loads .sql files into db for testing
 func loadPath(tx Tx, schema string, aliases map[string]string) error {
 
 	alias := aliases[schema]

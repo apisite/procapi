@@ -5,7 +5,8 @@ CFG           = .env
 GO           ?= go
 GOSOURCES    ?= ./... ./pgtype/... ./ginproc/...
 
-CODECOV_KEY   =
+sources_all  := $(wildcard *.go pgtype/*.go ginproc/*.go)
+SOURCES      ?= $(filter-out %_mock_test.go,${sources_all})
 
 # Random id for test objects names
 RANDOM_ID       ?= $(shell < /dev/urandom tr -dc A-Za-z0-9 | head -c14; echo)
@@ -48,10 +49,6 @@ PGPASSWORD=$(PGPASSWORD)
 # docker postgresql container name
 DB_CONTAINER=$(DB_CONTAINER)
 
-
-# codecov.io API key
-CODECOV_KEY=$(CODECOV_KEY)
-
 endef
 export CONFIG_DEFAULT
 
@@ -77,11 +74,11 @@ lint:
 
 ## Show coverage
 cov:
-	TEST_UPDATE=yes $(GO) test -coverprofile=coverage.txt -race -covermode=atomic -v $(GOSOURCES)
+	$(GO) test -coverprofile=coverage.txt -race -covermode=atomic -v $(GOSOURCES)
 
 ## Show coverage
 cov-db:
-	SCHEMA="rpc,public" TZ="Europe/Berlin" \
+	TZ="Europe/Berlin" \
 	$(GO) test -coverprofile=coverage.out -race -covermode=atomic -tags=db -v $(GOSOURCES)
 
 cov-db-upd:
@@ -96,8 +93,8 @@ cov-cmp:
 	$(MAKE) -s cov-db
 	@sort < coverage.out > coverage-db.out
 	$(MAKE) -s cov
-	@sort < coverage.out > coverage-mock.out
-	@diff -c0 coverage-mock.out coverage-db.out > coverage.diff &&  echo "No differences" || less coverage.diff
+	@sort < coverage.txt > coverage-mock.out
+	@diff -c0 coverage-mock.out coverage-db.out > coverage.diff && echo "No differences" || less coverage.diff
 
 ## Format go sources
 fmt:
@@ -155,8 +152,10 @@ test-docker-stop:
 	docker stop $$DB_CONTAINER
 
 # Count lines of code (including tests)
-cloc:
-	cloc --by-file --not-match-f='(_mock_test.go|.sql|ml|Makefile|resource.go)$$' .
+cloc: LOC.md
+
+LOC.md: $(SOURCES)
+	cloc --by-file --md $(SOURCES) > $@
 
 # ------------------------------------------------------------------------------
 

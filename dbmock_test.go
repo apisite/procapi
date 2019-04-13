@@ -70,16 +70,13 @@ func (ss *ServerSuite) prepServer(ctrl *gomock.Controller, m *MockDB) {
 	t := ss.T()
 
 	var indexRows []map[string]interface{}
-	helperLoadJSON(t, "index.json", &indexRows)
+	helperLoadJSON(t, "index", &indexRows)
 
 	var allArgs map[string][]map[string]interface{}
-	helperLoadJSON(t, "args.json", &allArgs)
+	helperLoadJSON(t, "args", &allArgs)
 
 	var allResult map[string][]map[string]interface{}
-	helperLoadJSON(t, "result.json", &allResult)
-
-	var allFields map[string][]string
-	helperLoadJSON(t, "fields.json", &allFields)
+	helperLoadJSON(t, "result", &allResult)
 
 	tx := NewMockTx(ctrl)
 
@@ -88,7 +85,7 @@ func (ss *ServerSuite) prepServer(ctrl *gomock.Controller, m *MockDB) {
 
 	indexResp := NewMockRows(ctrl)
 	tx.EXPECT().Queryx("select * from rpc.index($1)", nil).
-		Return(indexResp, nil) //indexRows, nil)
+		Return(indexResp, nil)
 	expectStructTable(ss.T(), indexResp, indexRows, &Method{})
 
 	for _, method := range indexRows {
@@ -96,12 +93,12 @@ func (ss *ServerSuite) prepServer(ctrl *gomock.Controller, m *MockDB) {
 		argsResp := NewMockRows(ctrl)
 		a := []interface{}{code}
 		tx.EXPECT().Queryx("select * from rpc.func_args($1)", a).
-			Return(argsResp, nil) //allArgs[code], nil)
+			Return(argsResp, nil)
 		expectStructTable(ss.T(), argsResp, allArgs[code], &InDef{})
 
 		resResp := NewMockRows(ctrl)
-		tx.EXPECT().Queryx("select * from rpc.func_result($1)", a). //[]interface{}{code}).
-										Return(resResp, nil) //allResult[code], nil)
+		tx.EXPECT().Queryx("select * from rpc.func_result($1)", a).
+			Return(resResp, nil)
 		expectStructTable(ss.T(), resResp, allResult[code], &OutDef{})
 	}
 	tx.EXPECT().Rollback().Return(nil)
@@ -111,10 +108,7 @@ func (ss *ServerSuite) prepServer(ctrl *gomock.Controller, m *MockDB) {
 func (ss *ServerSuite) TestCall() {
 
 	var allResult map[string][]map[string]interface{}
-	//var allResult map[string][]interface{} //map[string]interface{}
-	helperLoadJSON(ss.T(), "result.json", &allResult)
-	var allFields map[string][]string
-	helperLoadJSON(ss.T(), "fields.json", &allFields)
+	helperLoadJSON(ss.T(), "result", &allResult)
 
 	ctrl := gomock.NewController(ss.T())
 	defer ctrl.Finish()

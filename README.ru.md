@@ -13,7 +13,7 @@
  [![Build Status][bs1]][bs2]
  [![GoCard][gc1]][gc2]
  [![GitHub Release][gr1]][gr2]
- ![LoC][loc]
+ [![LoC][loc1]][loc2]
  [![GitHub code size in bytes][sz]]()
  [![GitHub license][gl1]][gl2]
 
@@ -28,19 +28,20 @@
 [gr1]: https://img.shields.io/github/release-pre/apisite/procapi.svg
 [gr2]: https://github.com/apisite/procapi/releases
 [sz]: https://img.shields.io/github/languages/code-size/apisite/procapi.svg
-[loc]: https://www.elfire.ru/badges/github/apisite/procapi.svg "Lines of Code"
+[loc1]: .loc.svg "Lines of Code"
+[loc2]: LOC.md
 [gl1]: https://img.shields.io/github/license/apisite/procapi.svg
 [gl2]: LICENSE
 
 ## Назначение
 
-Проект имеет целью предоставить доступ к хранимым функциям БД (например, postgresql) следующим потребителям:
+Пакет [apisite/procapi](https://github.com/apisite/procapi) является частью проекта [apisite](https://github.com/apisite/apisite) и предназначен для предоставления доступа к хранимым функциям БД (например, postgresql) следующим потребителям:
 * golang-шаблонам, для формирования страниц сайта с использованием данных из БД
 * внешним клиентам, для вызова функций БД из, например, javascript
 
-Т.к. вся необходимая потребителям информация (включая список и сигнатуры функций БД) изначально размещена в БД, при ее изменении не должна требоваться перекомпиляция golang-кода.
+Т.к. вся необходимая потребителям информация (включая список и сигнатуры функций БД) изначально размещена в БД, при ее изменении не требуется перекомпиляция golang-кода.
 
-Т.о., необходимо реализовать функцию вида:
+Задача пакета решается функцией вида:
 ```go
 func Call(method string, args map[string]interface{}) ([]map[string]interface{}, error) {}
 ```
@@ -49,18 +50,18 @@ func Call(method string, args map[string]interface{}) ([]map[string]interface{},
 ### Дополнения
 
 1. Выбор `map` для аргументов обусловлен необходимостью различать
-  * аргумент со значением
-  * аргумент без значения (NULL)
-  * аргумент о значением по умолчанию
+  * аргумент со значением (/name?arg=XX)
+  * аргумент без значения (NULL) (/name?arg)
+  * аргумент со значением по умолчанию (/name)
 2. Использование `map` в результате, для golang-потребителей, может быть сведено к структурам с помощью [mapstructure](https://github.com/mitchellh/mapstructure)
-3. На основе доступной в БД информации об аргументах функций, должна быть реализована их валидация
+3. Доступная в БД информация об аргументах функций используется для их валидации
 
 ## Структура
 
 Библиотека разделена на следующие части:
 
 * [procapi](https://github.com/apisite/procapi) - реализация функции `Call`
-* [pgtype](https://github.com/apisite/procapi/tree/master/pgtype) - функционал работы с БД postgresql посредством пакета jackc/pgx
+* [pgtype](https://github.com/apisite/procapi/tree/master/pgtype) - конвертация нативных для БД значений в go и обратно
 * [ginproc](https://github.com/apisite/procapi/tree/master/ginproc) - интеграция функционала в [gin](https://github.com/gin-gonic/gin)
 
 ## Особенности реализации
@@ -81,14 +82,14 @@ func Call(method string, args map[string]interface{}) ([]map[string]interface{},
 
 Т.к. для работы с БД могут потребоваться параметры соединения, они вынесены в файл настроек `.env`, для создания которого необходимо выполнить `make config`.
 
-Варианты запуска Postgresql
+Варианты запуска Postgresql:
 
 1. Внешний, в настройках задаются параметры соединения, пользователь и БД должны существовать
 2. Внутренний (с помощью docker). Для запуска необходимо в отдельной консоли выполнить `make test-docker-run`
 
 В любом из этих случаев, при выполнении тестов будут созданы и наполнены данными 3 схемы БД, которые после выполнения тестов будут удалены (по завершении тестов выполняется `ROLLBACK`).
 
-Для того, чтобы имена схем не пересеклись с уже существующими, к ним будет добавлен суффикс - случайная последовательность символов.
+Для того, чтобы имена схем не пересеклись с уже существующими, к ним добавляется суффикс - случайная последовательность символов.
 
 Необходимый для тестов SQL-код подключается в каталог тестовых данных (`testdata`) посредством `git submodule`. Т.о., если проект не был склонирован с ключем `--recursive`, для подгрузки SQL необходимо выполнить
 ```
@@ -107,16 +108,16 @@ git submodule update
 ### Сигнатуры методов
 
 * реестр доступных функций (и их сигнатуры) хранится в БД, там же хранятся описания функций, аргументов, результатов и примеры вызова (в перспективе - с поддержкой i18n)
-* доступ к реестру производится через вызовы специальных функций БД, что позволяет скрыть от потребителей внутренние функции (в перспективе это можно сделать через права доступа в БД)
-* маппинг между внешним именем функции и ее именем в БД позволяет прозрачно для клиента заменить вызываемую функцию (при совпадении сигнатур)
+* в реестре также задается соответствие между именем функции в API и в БД
+* доступ к реестру производится через вызовы специальных функций БД (их схема и имена задаются в настройках)
 
 ### procapi
 
 Для получения информации из реестра используются функции с зашитыми в код сигнатурами (их имена могут быть изменены в настройках):
 
-* `--db.index name` (default:"index") - список доступных функций, вызывается запросом вида `select code, nspname, proname, anno, sample, result, is_ro, is_set, is_struct from %s(namespace)`
-* `--db.indef name` (default:"func_args") - описание аргументов функции, вызывается запросом вида `select arg, type, required, def_val, anno from %s(code)`
-* `--db.outdef name` (default:"func_result") - описание результата функции, вызывается запросом вида `select arg, type, anno from %s(code)`
+* `--db.index $name` (default:"index") - список доступных функций, вызывается запросом вида `select code, nspname, proname, anno, sample, result, is_ro, is_set, is_struct from %s(namespace)`
+* `--db.indef $name` (default:"func_args") - описание аргументов функции, вызывается запросом вида `select arg, type, required, def_val, anno from %s(code)`
+* `--db.outdef $name` (default:"func_result") - описание результата функции, вызывается запросом вида `select arg, type, anno from %s(code)`
 
 ### pgtype
 
@@ -126,3 +127,22 @@ git submodule update
 
 Модуль добавляет в gin маршрутизацию для прямого вызова функций API и дополняет funcMap функциями доступа к API из шаблонов.
 Для работы с procapi используется интерфейс [ginproc.Caller](https://godoc.org/github.com/apisite/procapi/ginproc#Caller)
+
+## TODO
+
+* [ ] JWT + OAuth
+* [ ] Проверка доступа
+* [ ] [Кэш](https://github.com/golang/groupcache)
+* [ ] тесты ошибок
+* [ ] поддержка нативных методов API (golang)
+* [ ] LISTEN для фоновой обработки задач
+* [ ] Read-Only транзакции для Method.IsRO
+* [ ] Rollback транзакции для тестов из шаблонов
+
+## История
+
+* 2010 - PGWS, 1я реализация API для функций Postgresql (perl)
+* 2012 - [PGWS](https://github.com/LeKovr/pgws) - часть проекта опубликована на github.com
+* 2016 - [dbrpc](https://github.com/LeKovr/dbrpc) - реализация API на go (+pgx)
+* 2018 - [pgfc](https://github.com/apisite/pgfc) - API с поддержкой вызова из шаблонов
+* 2019 - [procapi] - API с тестами и поддержкой транзакций

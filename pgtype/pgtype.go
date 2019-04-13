@@ -33,7 +33,12 @@ func (t PGType) Unmarshal(typ string, val interface{}) (rv interface{}, err erro
 	case "text[]":
 		var x pq.StringArray
 		x.Scan(val)
-		rv = x
+		y := make([]*string, len(x))
+		for i, v := range x {
+			vv := v
+			y[i] = &vv
+		}
+		rv = y
 	case "integer[]":
 		var x pq.Int64Array
 		x.Scan(val)
