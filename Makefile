@@ -59,10 +59,17 @@ export
 
 .PHONY: gen config
 
+##
+## Available make targets
+##
+
+# default: show target list
+all: help
 # ------------------------------------------------------------------------------
 
-## update generated mocks
-# by https://github.com/golang/mock/
+## Sources
+
+## update generated mocks via github.com/golang/mock
 gen:
 	$(GO) generate
 
@@ -76,11 +83,12 @@ lint:
 cov:
 	$(GO) test -coverprofile=coverage.txt -race -covermode=atomic -v $(GOSOURCES)
 
-## Show coverage
+## Show coverage for DB tests
 cov-db:
 	TZ="Europe/Berlin" \
 	$(GO) test -coverprofile=coverage.out -race -covermode=atomic -tags=db -v $(GOSOURCES)
 
+## Show coverage for DB tests and update testdata files
 cov-db-upd:
 	SCHEMA="rpc,public" TEST_UPDATE=yes \
 	$(GO) test -coverprofile=coverage.out -race -covermode=atomic -tags=db -v $(GOSOURCES)
@@ -89,6 +97,7 @@ cov-db-upd:
 cov-html:
 	$(GO) tool cover -html=coverage.out
 
+## Compare no-DB and DB tests coverage
 cov-cmp:
 	$(MAKE) -s cov-db
 	@sort < coverage.out > coverage-db.out
@@ -107,6 +116,8 @@ vet:
 	$(GO) vet ginproc/*.go
 
 # ------------------------------------------------------------------------------
+
+## DB
 
 # Run tests when postgresql is available
 test-db-exists:
@@ -127,7 +138,7 @@ find-port:
 	fi
 	echo $(PGPORT)
 
-# Start postgresql via docker
+## Start postgresql via docker
 test-docker-run:
 	@docker run --rm --name $$DB_CONTAINER \
 	-p "127.0.0.1:$$PGPORT:5432" \
@@ -151,7 +162,9 @@ psql:
 test-docker-stop:
 	docker stop $$DB_CONTAINER
 
-# Count lines of code (including tests)
+## Misc
+
+## Count lines of code (including tests)
 cloc: LOC.md
 
 LOC.md: $(SOURCES)
@@ -159,20 +172,16 @@ LOC.md: $(SOURCES)
 
 # ------------------------------------------------------------------------------
 
-## create initial config
+# create initial config
 $(CFG):
 	@[ -f $@ ] || { echo "Creating default $@" ; echo "$$CONFIG_DEFAULT" > $@ ; }
 
-## Create default $(CFG) file
+## Create default config file
 config:
 	@true
 
 # ------------------------------------------------------------------------------
 
 ## List Makefile targets
-help:
-	@grep -A 1 "^##" Makefile | less
-
-##
-## Press 'q' for exit
-##
+help:  Makefile
+	@grep -A1 "^##" $< | grep -vE '^--$$' | sed -E '/^##/{N;s/^## (.+)\n(.+):(.*)/\t\2:\1/}' | column -t -s ':'
