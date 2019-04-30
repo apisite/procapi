@@ -7,7 +7,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/jmoiron/sqlx" // for sqlx.Connect only
+	"github.com/apisite/procapi/dbi"
 	"gopkg.in/birkirb/loggers.v1"
 )
 
@@ -63,7 +63,7 @@ type Method struct {
 
 // Service holds API service methods
 type Service struct {
-	dbh          DB
+	dbh          dbi.DB
 	config       Config
 	log          loggers.Contextual
 	methods      map[string]Method
@@ -73,7 +73,7 @@ type Service struct {
 }
 
 // New returns procapi service
-func New(cfg Config, log loggers.Contextual, dbh DB) *Service {
+func New(cfg Config, log loggers.Contextual, dbh dbi.DB) *Service {
 	srv := Service{log: log, config: cfg, dbh: dbh}
 	return &srv
 }
@@ -108,18 +108,18 @@ func (srv *Service) Open() error {
 	if dbh != nil {
 		return &callError{code: errNotNilDB}
 	}
-	conn, err := sqlx.Connect(srv.config.Driver, srv.config.DSN)
+	conn, err := dbi.Connect(srv.config.Driver, srv.config.DSN)
 	if err != nil {
 		return err
 	}
 	srv.mx.Lock()
 	defer srv.mx.Unlock()
-	srv.dbh = myDB{conn}
+	srv.dbh = conn
 	return nil
 }
 
 // Method returns method by name
-func (srv *Service) DB() DB {
+func (srv *Service) DB() dbi.DB {
 	srv.mx.RLock()
 	defer srv.mx.RUnlock()
 	return srv.dbh
@@ -150,7 +150,7 @@ func (srv *Service) LoadMethods() error {
 }
 
 // LoadMethodsTx load methods within given transaction for nsp if given, all of methods otherwise
-func (srv *Service) LoadMethodsTx(tx Tx) error {
+func (srv *Service) LoadMethodsTx(tx dbi.Tx) error {
 	rv, err := srv.FetchMethods(tx, srv.config.NameSpaces)
 	if err != nil {
 		return err
@@ -162,7 +162,7 @@ func (srv *Service) LoadMethodsTx(tx Tx) error {
 }
 
 // FetchMethods fetches from DB methods definition for given namespaces
-func (srv *Service) FetchMethods(tx Tx, nsp *[]string) (map[string]Method, error) {
+func (srv *Service) FetchMethods(tx dbi.Tx, nsp *[]string) (map[string]Method, error) {
 	const SQL = "select * from %s.%s(%s)"
 	schema := srv.config.FuncSchema
 	if srv.schemaSuffix != "" {
@@ -248,7 +248,7 @@ func (srv *Service) Call(
 
 // CallTx calls postgresql stored function within given transaction
 func (srv *Service) CallTx( //r *http.Request,
-	tx Tx,
+	tx dbi.Tx,
 	method string,
 	args map[string]interface{},
 ) (interface{}, error) {
@@ -320,7 +320,7 @@ func (srv *Service) CallTx( //r *http.Request,
 	return fetch(methodSpec, srv.typeM, rows)
 }
 
-func fetch(methodSpec Method, mars Marshaller, rows Rows) (interface{}, error) {
+func fetch(methodSpec Method, mars Marshaller, rows dbi.Rows) (interface{}, error) {
 
 	var rv []interface{}
 	var err error

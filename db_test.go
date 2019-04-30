@@ -17,6 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/apisite/procapi/dbi"
 	"github.com/apisite/procapi/pgtype"
 )
 
@@ -26,8 +27,8 @@ type ServerSuite struct {
 	srv  *Service
 	hook *test.Hook
 	req  *http.Request
-	conn DB //*sqlx.DB
-	tx   Tx //*sqlx.Tx
+	conn dbi.DB
+	tx   dbi.Tx
 	key  string
 }
 

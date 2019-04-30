@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 	//"github.com/olekukonko/tablewriter"
+
+	"github.com/apisite/procapi/dbi"
 )
 
 const (
@@ -14,7 +16,7 @@ const (
 )
 
 // loadPath loads .sql files into db for testing
-func loadPath(tx Tx, schema string, aliases map[string]string) error {
+func loadPath(tx dbi.Tx, schema string, aliases map[string]string) error {
 
 	alias := aliases[schema]
 	sql := fmt.Sprintf(SQLInit, alias, alias)

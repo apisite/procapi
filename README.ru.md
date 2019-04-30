@@ -28,10 +28,11 @@
 [gr1]: https://img.shields.io/github/release-pre/apisite/procapi.svg
 [gr2]: https://github.com/apisite/procapi/releases
 [sz]: https://img.shields.io/github/languages/code-size/apisite/procapi.svg
-[loc1]: .loc.svg "Lines of Code"
-[loc2]: LOC.md
+[loc1]: https://raw.githubusercontent.com/apisite/procapi/master/.loc.svg?sanitize=true "Lines of Code"
+[loc2]: https://github.com/apisite/procapi/blob/master/LOC.md
 [gl1]: https://img.shields.io/github/license/apisite/procapi.svg
-[gl2]: LICENSE
+[gl2]: https://github.com/apisite/procapi/blob/master/LICENSE
+
 
 ## Назначение
 
@@ -113,11 +114,11 @@ git submodule update
 
 ### procapi
 
-Для получения информации из реестра используются функции с зашитыми в код сигнатурами (их имена могут быть изменены в настройках):
+Для получения информации из реестра используются функции с зашитыми в код сигнатурами (их имена могут быть изменены в настройках), вызов имеет вид `SELECT * FROM %c(code`:
 
-* `--db.index $name` (default:"index") - список доступных функций, вызывается запросом вида `select code, nspname, proname, anno, sample, result, is_ro, is_set, is_struct from %s(namespace)`
-* `--db.indef $name` (default:"func_args") - описание аргументов функции, вызывается запросом вида `select arg, type, required, def_val, anno from %s(code)`
-* `--db.outdef $name` (default:"func_result") - описание результата функции, вызывается запросом вида `select arg, type, anno from %s(code)`
+* `--db.index $name` (default:"index") - список доступных функций, структура ответа - [Method](https://godoc.org/github.com/apisite/procapi#Method)
+* `--db.indef $name` (default:"func_args") - описание аргументов функции, структура ответа - [InDef](https://godoc.org/github.com/apisite/procapi#InDef)
+* `--db.outdef $name` (default:"func_result") - описание результата функции, структура ответа - [OutDef](https://godoc.org/github.com/apisite/procapi#OutDef)
 
 ### pgtype
 

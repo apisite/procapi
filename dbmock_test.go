@@ -2,7 +2,9 @@
 
 package procapi
 
-//go:generate mockgen -destination=generated_mock_test.go -package procapi -source=procapi.go DB,Tx,Rows,Result
+//go:generate mockgen -destination=generated_mock_test.go -package procapi github.com/apisite/procapi/dbi DB,Tx,Rows,Result
+
+//TODO: go:generate moq -out db_moq_test.go . Result Rows Tx DB
 
 import (
 	"net/http"

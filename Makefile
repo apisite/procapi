@@ -57,7 +57,7 @@ export CONFIG_DEFAULT
 -include $(CFG)
 export
 
-.PHONY: gen config
+.PHONY: help gen lint cov config
 
 ##
 ## Available make targets
@@ -65,19 +65,17 @@ export
 
 # default: show target list
 all: help
-# ------------------------------------------------------------------------------
 
+# ------------------------------------------------------------------------------
 ## Sources
 
-## update generated mocks via github.com/golang/mock
+## Update generated mocks via github.com/golang/mock
 gen:
 	$(GO) generate
 
-## run linter
+## Run linter
 lint:
 	golangci-lint run $(GOSOURCES)
-
-# ------------------------------------------------------------------------------
 
 ## Show coverage
 cov:
@@ -116,14 +114,10 @@ vet:
 	$(GO) vet ginproc/*.go
 
 # ------------------------------------------------------------------------------
-
 ## DB
 
 # Run tests when postgresql is available
-test-db-exists:
-
-# ------------------------------------------------------------------------------
-# Run tests with docker
+#test-db-exists:
 
 # find unused local port
 # https://unix.stackexchange.com/questions/55913/whats-the-easiest-way-to-find-an-unused-local-port
@@ -162,15 +156,14 @@ psql:
 test-docker-stop:
 	docker stop $$DB_CONTAINER
 
+# ------------------------------------------------------------------------------
 ## Misc
 
-## Count lines of code (including tests)
+## Count lines of code (including tests) and update LOC.md
 cloc: LOC.md
 
 LOC.md: $(SOURCES)
 	cloc --by-file --md $(SOURCES) > $@
-
-# ------------------------------------------------------------------------------
 
 # create initial config
 $(CFG):
@@ -179,8 +172,6 @@ $(CFG):
 ## Create default config file
 config:
 	@true
-
-# ------------------------------------------------------------------------------
 
 ## List Makefile targets
 help:  Makefile

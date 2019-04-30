@@ -1,4 +1,5 @@
-package procapi
+// Package dbi implements DB interfaces based on sqlx.
+package dbi
 
 import (
 	"github.com/jmoiron/sqlx"
@@ -41,6 +42,15 @@ type myDB struct {
 
 type myTx struct {
 	*sqlx.Tx
+}
+
+// Connect return DB connection handle
+func Connect(driverName, dataSourceName string) (DB, error) {
+	dbh, err := sqlx.Connect(driverName, dataSourceName)
+	if err != nil {
+		return nil, err
+	}
+	return myDB{dbh}, nil
 }
 
 // Beginx begins a transaction and returns an Tx instead of an *sqlx.Tx.
