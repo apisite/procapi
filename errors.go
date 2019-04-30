@@ -1,10 +1,7 @@
-package procapi
-
-import (
-	"fmt"
-)
-
 /*
+
+callError usage:
+
 	type callError interface {
 		IsNotFound() bool
 		IsBadRequest() bool
@@ -20,6 +17,11 @@ import (
 	}
 
 */
+package procapi
+
+import (
+	"fmt"
+)
 
 // ErrorID
 type errorID uint8
