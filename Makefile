@@ -133,16 +133,24 @@ find-port:
 	echo $(PGPORT)
 
 ## Start postgresql via docker
-test-docker-run:
+test-docker-run: test-docker-user
 	@docker run --rm --name $$DB_CONTAINER \
 	-p "127.0.0.1:$$PGPORT:5432" \
 	-e POSTGRES_PASSWORD=$$PGPASSWORD \
 	-e POSTGRES_DB=$$PGDATABASE \
 	-e WORKDIR=/docker-entrypoint-initdb.d \
 	-v $(shell pwd)/tmp-db:/var/lib/postgresql/data \
-	-v $(shell pwd)/testdata:/docker-entrypoint-initdb.d $$PG_IMAGE
+	-v $(shell pwd)/tmp:/docker-entrypoint-initdb.d $$PG_IMAGE
 
 # TODO: ALTER DATABASE db WITH ALLOW_CONNECTIONS false;
+
+#
+test-docker-user: tmp/crebas.sql
+
+tmp/crebas.sql:
+	[ -d tmp ] || mkdir tmp
+	echo "create user \"$$PGUSER\" WITH PASSWORD '$$PGPASSWORD';" > $@
+	echo "alter database \"$$PGDATABASE\" OWNER TO \"$$PGUSER\";" >> $@
 
 ## Run psql via docker
 psql-docker:
