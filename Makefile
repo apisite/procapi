@@ -8,8 +8,11 @@ GOSOURCES    ?= ./... ./pgtype/... ./ginproc/...
 sources_all  := $(wildcard *.go pgtype/*.go ginproc/*.go)
 SOURCES      ?= $(filter-out %_mock_test.go,${sources_all})
 
+# Dependencies
+LINT          = $(shell command -v golangci-lint 2> /dev/null)
+
 # Random id for test objects names
-RANDOM_ID       ?= $(shell < /dev/urandom tr -dc A-Za-z0-9 | head -c14; echo)
+RANDOM_ID    ?= $(shell < /dev/urandom tr -dc A-Za-z0-9 | head -c14; echo)
 
 # Postgresql Database image
 PG_IMAGE     ?= postgres:11.2
@@ -57,7 +60,8 @@ export CONFIG_DEFAULT
 -include $(CFG)
 export
 
-.PHONY: help gen lint cov config
+
+.PHONY: help gen lint cov config linter-dep
 
 ##
 ## Available make targets
@@ -73,8 +77,15 @@ all: help
 gen:
 	$(GO) generate
 
+linter-dep:
+ifeq ($(LINT),)
+	$(error "linter is not available, please install it from https://github.com/golangci/golangci-lint")
+else
+	@echo "$(LINT) found."
+endif
+
 ## Run linter
-lint:
+lint: linter-dep
 	golangci-lint run $(GOSOURCES)
 
 ## Show coverage
