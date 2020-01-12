@@ -13,6 +13,8 @@ import (
 	"gopkg.in/birkirb/loggers.v1"
 )
 
+// codebeat:disable[TOO_MANY_IVARS]
+
 // Config defines local application flags
 type Config struct {
 	DSN           string    `long:"dsn" default:"postgres://?sslmode=disable" description:"Database connect string"`
@@ -63,12 +65,6 @@ type Method struct {
 	Out      []OutDef         //`json:",omitempty"`
 }
 
-// Marshaller holds methods for database values marshalling
-type Marshaller interface {
-	Marshal(typ string, v interface{}) (interface{}, error)
-	Unmarshal(typ string, data interface{}) (rv interface{}, err error)
-}
-
 // Service holds API service methods
 type Service struct {
 	dbh          *pgx.Conn
@@ -79,6 +75,15 @@ type Service struct {
 	typeM        Marshaller
 	schemaSuffix string
 }
+
+// codebeat:enable[TOO_MANY_IVARS]
+
+// Marshaller holds methods for database values marshalling
+type Marshaller interface {
+	Marshal(typ string, v interface{}) (interface{}, error)
+	Unmarshal(typ string, data interface{}) (rv interface{}, err error)
+}
+
 
 //Functional options
 //https://github.com/tmrts/go-patterns/blob/master/idiom/functional-options.md
