@@ -2,15 +2,8 @@ kind: pipeline
 name: default
 
 steps:
-  - name: testing
-    image: golang:1.12
-    pull: true
-    commands:
-      - go test -v -race -coverprofile=coverage.txt -covermode=atomic ./... ./pgtype/... ./ginproc/...
-      - go vet ./... ./pgtype/... ./ginproc/...
-
   - name: wait-for-db
-    image: postgres:11.2-alpine
+    image: postgres:11.4-alpine
     commands:
     - until pg_isready -q -U postgres -h database ; do sleep 1 ; echo -n "." ; done
 
@@ -33,7 +26,7 @@ steps:
 
 services:
   - name: database
-    image: postgres:11.2-alpine
+    image: postgres:11.4-alpine
     ports:
     - 5432
     environment:
