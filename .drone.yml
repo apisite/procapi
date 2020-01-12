@@ -6,13 +6,16 @@ steps:
     image: postgres:11.4-alpine
     commands:
     - until pg_isready -q -U postgres -h database ; do sleep 1 ; echo -n "." ; done
-
+  - name: submodules
+    image: alpine/git
+    commands:
+      -  git submodule init
+      - 'git config url."https://github.com/".insteadOf git@github.com:'
+      - 'git submodule update --recursive --remote'
   - name: testing-db
     image: golang:1.13
     pull: true
     commands:
-      - git submodule init
-      - git submodule update
       - go test -v -race -coverprofile=coverage.out -covermode=atomic -tags=db ./...
       - curl -s https://codecov.io/bash | bash
     environment:
