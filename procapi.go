@@ -1,13 +1,15 @@
 package procapi
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"reflect"
 	"strings"
+
 	"sync"
 
-	"github.com/apisite/procapi/dbi"
+	"github.com/jackc/pgx/v4"
 	"gopkg.in/birkirb/loggers.v1"
 )
 
@@ -61,9 +63,15 @@ type Method struct {
 	Out      []OutDef         //`json:",omitempty"`
 }
 
+// Marshaller holds methods for database values marshalling
+type Marshaller interface {
+	Marshal(typ string, v interface{}) (interface{}, error)
+	Unmarshal(typ string, data interface{}) (rv interface{}, err error)
+}
+
 // Service holds API service methods
 type Service struct {
-	dbh          dbi.DB
+	dbh          *pgx.Conn
 	config       Config
 	log          loggers.Contextual
 	methods      map[string]Method
@@ -72,57 +80,32 @@ type Service struct {
 	schemaSuffix string
 }
 
+//Functional options
+//https://github.com/tmrts/go-patterns/blob/master/idiom/functional-options.md
+
+// Option is a functional options return type
+type Option func(*Service)
+
+// Marshall allows to change default marshaller
+func Marshall(m Marshaller) Option {
+	return func(srv *Service) {
+		srv.typeM = m
+	}
+}
+
 // New returns procapi service
-func New(cfg Config, log loggers.Contextual, dbh dbi.DB) *Service {
-	srv := Service{log: log, config: cfg, dbh: dbh}
-	return &srv
-}
-
-// SetSchemaSuffix sets suffix for all of used shemas names
-func (srv *Service) SetSchemaSuffix(suffix string) *Service {
-	srv.mx.Lock()
-	defer srv.mx.Unlock()
-	srv.schemaSuffix = suffix
-	return srv
-}
-
-// Marshaller holds methods for database values marshalling
-type Marshaller interface {
-	Marshal(typ string, v interface{}) (interface{}, error)
-	Unmarshal(typ string, data interface{}) (rv interface{}, err error)
-}
-
-// SetMarshaller sets marshaller
-func (srv *Service) SetMarshaller(m Marshaller) *Service {
-	srv.mx.Lock()
-	defer srv.mx.Unlock()
-	srv.typeM = m
-	return srv
-}
-
-// Open opens DB connection
-func (srv *Service) Open() error {
-	srv.mx.RLock()
-	dbh := srv.dbh
-	srv.mx.RUnlock()
-	if dbh != nil {
-		return &callError{code: errNotNilDB}
+func New(cfg Config, log loggers.Contextual, dbh *pgx.Conn, options ...Option) *Service {
+	srv := &Service{
+		log: log, config: cfg, dbh: dbh,
 	}
-	conn, err := dbi.Connect(srv.config.Driver, srv.config.DSN)
-	if err != nil {
-		return err
+	for _, option := range options {
+		option(srv)
 	}
-	srv.mx.Lock()
-	defer srv.mx.Unlock()
-	srv.dbh = conn
-	return nil
-}
 
-// Method returns method by name
-func (srv *Service) DB() dbi.DB {
-	srv.mx.RLock()
-	defer srv.mx.RUnlock()
-	return srv.dbh
+	if srv.typeM == nil {
+		srv.typeM = &PGType{}
+	}
+	return srv
 }
 
 // Method returns method by name
@@ -133,24 +116,8 @@ func (srv *Service) Method(name string) (Method, bool) {
 	return m, ok
 }
 
-// LoadMethods load methods for nsp if given, all of methods otherwise
-func (srv *Service) LoadMethods() error {
-	srv.mx.RLock()
-	dbh := srv.dbh
-	srv.mx.RUnlock()
-	if dbh == nil {
-		return &callError{code: errNilDB}
-	}
-	tx, err := dbh.Beginx()
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback() // No DB changes here
-	return srv.LoadMethodsTx(tx)
-}
-
 // LoadMethodsTx load methods within given transaction for nsp if given, all of methods otherwise
-func (srv *Service) LoadMethodsTx(tx dbi.Tx) error {
+func (srv *Service) LoadMethodsTx(tx pgx.Tx) error {
 	rv, err := srv.FetchMethods(tx, srv.config.NameSpaces)
 	if err != nil {
 		return err
@@ -162,13 +129,14 @@ func (srv *Service) LoadMethodsTx(tx dbi.Tx) error {
 }
 
 // FetchMethods fetches from DB methods definition for given namespaces
-func (srv *Service) FetchMethods(tx dbi.Tx, nsp *[]string) (map[string]Method, error) {
+func (srv *Service) FetchMethods(tx pgx.Tx, nsp *[]string) (map[string]Method, error) {
 	const SQL = "select * from %s.%s(%s)"
 	schema := srv.config.FuncSchema
 	if srv.schemaSuffix != "" {
 		schema += "_" + srv.schemaSuffix
 	}
-	rows, err := tx.Queryx(fmt.Sprintf(SQL, schema, srv.config.IndexFunc, positionalArgs(nsp)), nsp)
+	ctx := context.Background()
+	rows, err := tx.Query(ctx, fmt.Sprintf(SQL, schema, srv.config.IndexFunc, positionalArgs(nsp)), nsp)
 	if err != nil {
 		return nil, err
 	}
@@ -177,7 +145,7 @@ func (srv *Service) FetchMethods(tx dbi.Tx, nsp *[]string) (map[string]Method, e
 	rvTemp := []Method{}
 	for rows.Next() {
 		r := Method{}
-		err := rows.StructScan(&r)
+		err := ScanStruct(rows, &r)
 		if err != nil {
 			return nil, err
 		}
@@ -186,7 +154,7 @@ func (srv *Service) FetchMethods(tx dbi.Tx, nsp *[]string) (map[string]Method, e
 	rv := map[string]Method{}
 	for _, v := range rvTemp {
 		k := v.Name
-		rows, err := tx.Queryx(fmt.Sprintf(SQL, schema, srv.config.InDefFunc, positionalArgs(k)), k)
+		rows, err := tx.Query(ctx, fmt.Sprintf(SQL, schema, srv.config.InDefFunc, positionalArgs(k)), k)
 		if err != nil {
 			return nil, err
 		}
@@ -194,7 +162,7 @@ func (srv *Service) FetchMethods(tx dbi.Tx, nsp *[]string) (map[string]Method, e
 		inArgs := map[string]InDef{}
 		for rows.Next() {
 			r := InDef{}
-			err := rows.StructScan(&r)
+			err := ScanStruct(rows, &r)
 			if err != nil {
 				return nil, err
 			}
@@ -202,14 +170,14 @@ func (srv *Service) FetchMethods(tx dbi.Tx, nsp *[]string) (map[string]Method, e
 		}
 		v.In = inArgs
 
-		rows, err = tx.Queryx(fmt.Sprintf(SQL, schema, srv.config.OutDefFunc, positionalArgs(k)), k)
+		rows, err = tx.Query(ctx, fmt.Sprintf(SQL, schema, srv.config.OutDefFunc, positionalArgs(k)), k)
 		if err != nil {
 			return nil, err
 		}
 		defer rows.Close()
 		for rows.Next() {
 			r := OutDef{}
-			err := rows.StructScan(&r)
+			err := ScanStruct(rows, &r)
 			if err != nil {
 				return nil, err
 			}
@@ -229,26 +197,24 @@ func (srv *Service) Call(
 	srv.mx.RLock()
 	dbh := srv.dbh
 	srv.mx.RUnlock()
-	if dbh == nil {
-		return nil, &callError{code: errNilDB}
-	}
-	tx, err := dbh.Beginx()
+	ctx := context.Background()
+	tx, err := dbh.Begin(ctx)
 	if err != nil {
 		return nil, err
 	}
 	var rv interface{}
 	rv, err = srv.CallTx(tx, method, args)
 	if err != nil { // TODO: or Method.IsRo
-		tx.Rollback()
+		tx.Rollback(ctx)
 	} else {
-		err = tx.Commit()
+		err = tx.Commit(ctx)
 	}
 	return rv, err
 }
 
 // CallTx calls postgresql stored function within given transaction
 func (srv *Service) CallTx( //r *http.Request,
-	tx dbi.Tx,
+	tx pgx.Tx,
 	method string,
 	args map[string]interface{},
 ) (interface{}, error) {
@@ -277,6 +243,7 @@ func (srv *Service) CallTx( //r *http.Request,
 		return nil, (&callError{code: errArgsMissed}).addContext("args", missedArgs)
 	}
 
+	ctx := context.Background()
 	if methodSpec.Result != nil && *methodSpec.Result == "void" {
 		// no data returned
 		sql := fmt.Sprintf("SELECT %s.%s(%s)",
@@ -284,8 +251,8 @@ func (srv *Service) CallTx( //r *http.Request,
 			methodSpec.Func,
 			strings.Join(inAssigns, ", "),
 		)
-		qr, err := tx.Exec(sql, inVars...)
-		ctra, _ := qr.RowsAffected()
+		qr, err := tx.Exec(ctx, sql, inVars...)
+		ctra := qr.RowsAffected()
 		srv.log.Debugf("Rows affected: %d", ctra) // TODO: Header.Add ?
 		return nil, err
 	}
@@ -310,17 +277,22 @@ func (srv *Service) CallTx( //r *http.Request,
 		strings.Join(inAssigns, ", "),
 	)
 	srv.log.Debugf("sql: %s, args: %v\n", sql, inVars)
+	// fmt.Printf(">>> row------------------: %+v %v\n", sql, inVars)
 
-	rows, err := tx.Queryx(sql, inVars...)
+	rows, err := tx.Query(ctx, sql, inVars...)
 	if err != nil {
 		return nil, err
 	}
+	if rows.Err() != nil {
+		return nil, rows.Err()
+	}
+
 	defer rows.Close()
 
 	return fetch(methodSpec, srv.typeM, rows)
 }
 
-func fetch(methodSpec Method, mars Marshaller, rows dbi.Rows) (interface{}, error) {
+func fetch(methodSpec Method, mars Marshaller, rows pgx.Rows) (interface{}, error) {
 
 	var rv []interface{}
 	var err error
@@ -329,7 +301,8 @@ func fetch(methodSpec Method, mars Marshaller, rows dbi.Rows) (interface{}, erro
 		var r interface{}
 		if methodSpec.IsStruct {
 			m := map[string]interface{}{}
-			err = rows.MapScan(m)
+			err = ScanMap(rows, &m)
+
 			if err != nil {
 				return nil, err
 			}
@@ -346,10 +319,12 @@ func fetch(methodSpec Method, mars Marshaller, rows dbi.Rows) (interface{}, erro
 			r = m
 		} else {
 			// get 1st column only
-			err = rows.Scan(&r)
-		}
-		if err != nil {
-			return nil, err
+			var rr []interface{}
+			rr, err = rows.Values()
+			if err != nil {
+				return nil, err
+			}
+			r = rr[0]
 		}
 		rv = append(rv, r)
 	}

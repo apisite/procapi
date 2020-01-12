@@ -1,13 +1,9 @@
 {
-  "aint4": [
-    1,
-    2,
-    3
-  ],
   "atext": [
     "{\"b\":2}",
     "{\"c\":3}"
   ],
+  "id": 1,
   "tbool": true,
   "tchar": "й",
   "tdate": "2011-01-19T00:00:00Z",
@@ -19,17 +15,15 @@
   "tint8": 8,
   "tinterval": "10s",
   "tjson": {
-    "precomputed": true,
+    "a": "one",
     "b": 2
   },
   "tjsonb": {
-    "precomputed": true,
+    "a": "one",
     "b": 2
   },
-  "tmoney": 5678.9012,
   "tnumeric": 7890.1234,
-  "ttext": "{\"precomputed\": true, \"b\":2}",
-  "ttime": "23:59:10",
+  "ttext": "some{text)",
   "ttimestamp": "1997-12-17T15:37:16.1Z",
-  "ttimestamptz": "1997-12-17T15:37:16.1+03:00"
+  "ttimestamptz": "1997-12-17T13:37:16.1+01:00"
 }

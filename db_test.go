@@ -3,10 +3,14 @@
 package procapi
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"math"
+	"net"
 	"net/http"
 	"net/http/httptest"
+	"sync"
 	"time"
 
 	mapper "github.com/birkirb/loggers-mapper-logrus"
@@ -17,8 +21,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/apisite/procapi/dbi"
-	"github.com/apisite/procapi/pgtype"
+	"github.com/pgmig/pgmig"
+
+	"github.com/jackc/pgx/v4"
 )
 
 type ServerSuite struct {
@@ -27,9 +32,10 @@ type ServerSuite struct {
 	srv  *Service
 	hook *test.Hook
 	req  *http.Request
-	conn dbi.DB
-	tx   dbi.Tx
-	key  string
+	db   *pgx.Conn
+	tx   pgx.Tx
+	wg   sync.WaitGroup
+	mig  *pgmig.Migrator
 }
 
 func (ss *ServerSuite) SetupSuite() {
@@ -46,47 +52,46 @@ func (ss *ServerSuite) SetupSuite() {
 
 	hook.Reset()
 
-	ss.key = RandStringBytesRmndr(4)
-	s := New(ss.cfg, log, nil).
-		SetSchemaSuffix(ss.key).
-		SetMarshaller(pgtype.New())
+	ctx := context.Background()
+	var cfgMig pgmig.Config
+	p = flags.NewParser(&cfgMig, flags.Default|flags.IgnoreUnknown)
+	_, err = p.Parse()
+	require.NoError(ss.T(), err)
+	ss.mig = pgmig.New(cfgMig, log, nil, "testdata")
 
-	err = s.Open()
+	ss.db, err = ss.mig.Connect("")
 	require.NoError(ss.T(), err)
 
-	db := s.DB()
-	tx, err := db.Beginx()
+	ss.tx, err = ss.db.Begin(ctx)
 	require.NoError(ss.T(), err)
 
-	//	ss.cfg.DB.LogLevel = "debug" // we count log lines
-	//	db, err := pgxpgcall.New(ss.cfg.DB, log)
-	//	require.NoError(ss.T(), err)
-	//	assert.Equal(ss.T(), "Added DB connection", ss.hook.LastEntry().Message)
+	ss.wg.Add(1)
+	go ss.mig.PrintMessages(&ss.wg)
+	_, err = ss.mig.Run(ss.tx, "init", []string{"pgmig", "rpc", "rpc_testing"})
+	require.NoError(ss.T(), err)
+
+	s := New(ss.cfg, log, ss.db)
 
 	ss.req = httptest.NewRequest("GET", "http://example.com/foo", nil)
 	//    w := httptest.NewRecorder()
 
-	aliases := map[string]string{}
-	for _, schema := range []string{"poma", "rpc", "rpc_testing"} {
-		aliases[schema] = schema + "_" + ss.key
-		err = loadPath(tx, schema, aliases)
-		require.NoError(ss.T(), err)
-	}
-
-	err = s.LoadMethodsTx(tx)
+	err = s.LoadMethodsTx(ss.tx)
 	require.NoError(ss.T(), err)
 
 	helperCheckTestUpdate("methods", s.methods)
 
 	ss.srv = s
-	ss.tx = tx
-	ss.conn = db
+
 }
 
 func (ss *ServerSuite) TearDownSuite() {
 	fmt.Printf("exit\n")
-	ss.tx.Rollback()
-	ss.conn.Close()
+	ss.tx.Rollback(context.Background())
+	ss.db.Close(context.Background())
+
+	close(ss.mig.MessageChan)
+	ss.wg.Wait()
+
 	/*
 		if err != nil {
 			pqe, ok := err.(*pq.Error)
@@ -106,16 +111,32 @@ func (ss *ServerSuite) TestCall() {
 	var str1 interface{} = "xx"
 	rv, err := ss.srv.CallTx(tx, "test_args", map[string]interface{}{"name": &str1})
 	require.NoError(ss.T(), err)
-
 	assert.Equal(ss.T(), &str1, rv)
 
 	args := map[string]interface{}{}
 	helperLoadJSON(ss.T(), "test_types_args", &args)
+	args["tint8"] = int8(args["tint8"].(float64))
+	args["tint4"] = int(args["tint4"].(float64))
+	args["tint2"] = int(args["tint2"].(float64))
+
+	// TODO: inet loses net when fetched from db
+	ip, ipnet, err := net.ParseCIDR(args["tinet"].(string))
+	require.NoError(ss.T(), err)
+	ipnet.IP = ip
+	args["tinet"] = ipnet
+	//	fmt.Printf("=============>> %#v\n", ipnet.String())
 
 	rv, err = ss.srv.CallTx(tx, "test_types", args)
 	require.NoError(ss.T(), err)
+	require.NotNil(ss.T(), rv)
+
 	rv0 := rv.([]interface{})[0]
-	helperCheckTestUpdate("test_types_args", rv0)
+	rv01 := rv0.(map[string]interface{})
+
+	rv01["tfloat4"] = math.Round(float64(rv01["tfloat4"].(float32))*1000) / 1000
+	rv01["tnumeric"] = math.Round(rv01["tnumeric"].(float64)*10000) / 10000
+
+	helperCheckTestUpdate("test_types_args", rv01)
 	helperCheckTestUpdate("test_types_rv", rv)
 
 	rvWant := []interface{}{}
@@ -130,8 +151,9 @@ func (ss *ServerSuite) TestCall() {
 
 	assert.Equal(ss.T(), rvWant, rvGot)
 
+	ctx := context.Background()
 	// Now we want another TZ
-	_, err = tx.Exec("set timezone = 'Europe/Berlin'")
+	_, err = tx.Exec(ctx, "set timezone = 'Europe/Berlin'")
 	require.NoError(ss.T(), err)
 	rv, err = ss.srv.CallTx(tx, "test_types", args)
 	require.NoError(ss.T(), err)

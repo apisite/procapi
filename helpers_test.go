@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"math/rand"
 	"os"
 	"path/filepath"
 
@@ -45,15 +44,4 @@ func check(e error) {
 	if e != nil {
 		panic(e)
 	}
-}
-
-// https://stackoverflow.com/a/31832326/5199825
-const letterBytes = "abcdefghijklmnopqrstuvwxyz0123456789"
-
-func RandStringBytesRmndr(n int) string {
-	b := make([]byte, n)
-	for i := range b {
-		b[i] = letterBytes[rand.Int63()%int64(len(letterBytes))]
-	}
-	return string(b)
 }

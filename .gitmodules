@@ -1,9 +1,9 @@
-[submodule "testdata/poma"]
-	path = testdata/poma
-	url = https://github.com/pomasql/poma.git
+[submodule "testdata/pgmig"]
+	path = testdata/pgmig
+	url = git@github.com:pgmig-sql/pgmig.git
 [submodule "testdata/rpc"]
 	path = testdata/rpc
-	url = https://github.com/pomasql/rpc.git
+	url = git@github.com:pgmig-sql/rpc.git
 [submodule "testdata/rpc_testing"]
 	path = testdata/rpc_testing
-	url = https://github.com/pomasql/rpc_testing.git
+	url = git@github.com:pgmig-sql/rpc_testing.git

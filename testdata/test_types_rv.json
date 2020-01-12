@@ -1,10 +1,5 @@
 [
   {
-    "aint4": [
-      1,
-      2,
-      3
-    ],
     "atext": [
       "{\"b\":2}",
       "{\"c\":3}"
@@ -13,34 +8,30 @@
     "tbool": true,
     "tchar": "й",
     "tdate": "2011-01-19T00:00:00Z",
-    "tfloat4": 12.34000015258789,
+    "tfloat4": 12.34,
     "tfloat8": 3456.789,
-    "tinet": "127.0.1.2/8",
+    "tinet": {
+      "IP": "127.0.1.2",
+      "Mask": "/wAAAAAAAAAAAAAAAAAAAA=="
+    },
     "tint2": 2,
     "tint4": 4,
     "tint8": 8,
     "tinterval": "10s",
     "tjson": {
-      "b": 2,
-      "precomputed": true
+      "a": "one",
+      "b": 2
     },
     "tjsonb": {
-      "b": 2,
-      "precomputed": true
+      "a": "one",
+      "b": 2
     },
-    "tmoney": "$5,678.90",
-    "tnumeric": 7890.123400000001,
-    "ttext": "{\"precomputed\": true, \"b\":2}",
-    "ttime": "0000-01-01T23:59:10Z",
+    "tnumeric": 7890.1234,
+    "ttext": "some{text)",
     "ttimestamp": "1997-12-17T15:37:16.1Z",
-    "ttimestamptz": "1997-12-17T12:37:16.1Z"
+    "ttimestamptz": "1997-12-17T13:37:16.1+01:00"
   },
   {
-    "aint4": [
-      9,
-      8,
-      7
-    ],
     "atext": [
       "zyx1",
       "zyx2"
@@ -49,30 +40,30 @@
     "tbool": false,
     "tchar": "x",
     "tdate": "2019-03-31T00:00:00Z",
-    "tfloat4": 4.113333225250244,
+    "tfloat4": 4.113333,
     "tfloat8": 1152.2630000000001,
-    "tinet": "127.0.1.2/8",
+    "tinet": {
+      "IP": "1.2.3.4",
+      "Mask": "/wAAAA=="
+    },
     "tint2": 1,
     "tint4": 2,
     "tint8": 4,
     "tinterval": "1h0m10s",
     "tjson": {
-      "b": 2,
-      "precomputed": true
+      "a": "one",
+      "b": 2
     },
     "tjsonb": {
-      "b": 2,
-      "precomputed": true
+      "a": "one",
+      "b": 2
     },
-    "tmoney": "$5,678.90",
     "tnumeric": 7890.123400000001,
-    "ttext": "{\"precomputed\": true, \"b\":2}{\"precomputed\": true, \"b\":2}",
-    "ttime": "0000-01-01T23:55:10.5Z",
+    "ttext": "some{text)some{text)",
     "ttimestamp": "1997-12-17T15:37:16Z",
-    "ttimestamptz": "1997-12-17T16:00:00Z"
+    "ttimestamptz": "1997-12-17T17:00:00+01:00"
   },
   {
-    "aint4": null,
     "atext": null,
     "id": 3,
     "tbool": null,
@@ -87,10 +78,8 @@
     "tinterval": null,
     "tjson": null,
     "tjsonb": null,
-    "tmoney": null,
     "tnumeric": null,
     "ttext": null,
-    "ttime": null,
     "ttimestamp": null,
     "ttimestamptz": null
   }

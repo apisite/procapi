@@ -76,7 +76,7 @@ func (ss *ServerSuite) TestHandler() {
 		Return("bar", nil)
 
 	r.ServeHTTP(resp, req)
-	assert.Equal(ss.T(), resp.Body.String(), `"bar"`)
+	assert.Equal(ss.T(), "\"bar\"\n", resp.Body.String())
 
 	data := strings.NewReader("{}")
 	req, _ = http.NewRequest("POST", "/rpc/index", data)
@@ -85,8 +85,7 @@ func (ss *ServerSuite) TestHandler() {
 		Return("bar", nil)
 
 	r.ServeHTTP(resp, req)
-	assert.Equal(ss.T(), resp.Body.String(), `"bar"`)
-
+	assert.Equal(ss.T(), "\"bar\"\n", resp.Body.String())
 }
 
 func (ss *ServerSuite) TestFunc() {

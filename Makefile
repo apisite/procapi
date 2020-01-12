@@ -3,7 +3,7 @@
 SHELL         = /bin/bash
 CFG           = .env
 GO           ?= go
-GOSOURCES    ?= ./... ./pgtype/... ./ginproc/...
+GOSOURCES    ?= $(shell find . -name "*.go")
 
 sources_all  := $(wildcard *.go pgtype/*.go ginproc/*.go)
 SOURCES      ?= $(filter-out %_mock_test.go,${sources_all})
@@ -15,7 +15,7 @@ LINT          = $(shell command -v golangci-lint 2> /dev/null)
 RANDOM_ID    ?= $(shell < /dev/urandom tr -dc A-Za-z0-9 | head -c14; echo)
 
 # Postgresql Database image
-PG_IMAGE     ?= postgres:11.2
+PG_IMAGE     ?= postgres:11.4
 
 PRG          ?= $(shell basename $$PWD)
 
@@ -28,9 +28,10 @@ PGPORT       ?= 5431
 PGSSLMODE    ?= disable
 PGPASSWORD   ?= $(shell < /dev/urandom tr -dc A-Za-z0-9 | head -c14; echo)
 
-# Running postgresql container name for `docker exec`
-DB_CONTAINER ?= procapi_$(RANDOM_ID)
-#dcape_db_1
+# Postgresql container name
+PG_CONTAINER  ?= dcape_db_1
+# Postgresql container network
+PG_NETWORK    ?= dcape_net
 
 define CONFIG_DEFAULT
 # ------------------------------------------------------------------------------
@@ -48,9 +49,6 @@ PGDATABASE=$(PGDATABASE)
 PGUSER=$(PGUSER)
 # Password
 PGPASSWORD=$(PGPASSWORD)
-
-# docker postgresql container name
-DB_CONTAINER=$(DB_CONTAINER)
 
 endef
 export CONFIG_DEFAULT
@@ -89,18 +87,20 @@ lint: linter-dep
 	golangci-lint run $(GOSOURCES)
 
 ## Show coverage
-cov:
-	$(GO) test -coverprofile=coverage.txt -race -covermode=atomic -v $(GOSOURCES)
+cov: $(GOSOURCES)
+	$(GO) test -coverprofile=coverage.txt -race -covermode=atomic -v ./...
+
+test: cov-db
 
 ## Show coverage for DB tests
 cov-db:
 	TZ="Europe/Berlin" \
-	$(GO) test -coverprofile=coverage.out -race -covermode=atomic -tags=db -v $(GOSOURCES)
+	$(GO) test -coverprofile=coverage.out -race -covermode=atomic -tags=db -v ./...
 
 ## Show coverage for DB tests and update testdata files
 cov-db-upd:
-	SCHEMA="rpc,public" TEST_UPDATE=yes \
-	$(GO) test -coverprofile=coverage.out -race -covermode=atomic -tags=db -v $(GOSOURCES)
+	TEST_UPDATE=yes \
+	$(GO) test -coverprofile=coverage.out -race -covermode=atomic -tags=db -v ./...
 
 ## Show package coverage in html
 cov-html:
@@ -125,55 +125,34 @@ vet:
 	$(GO) vet ginproc/*.go
 
 # ------------------------------------------------------------------------------
-## DB
+# DB operations with docker and [dcape](https://github.com/dopos/dcape)
 
-# Run tests when postgresql is available
-#test-db-exists:
+# (internal) Wait for postgresql container start
+docker-wait:
+	@echo -n "Checking PG is ready..."
+	@until [[ `docker inspect -f "{{.State.Health.Status}}" $$PG_CONTAINER` == healthy ]] ; do sleep 1 ; echo -n "." ; done
+	@echo "Ok"
 
-# find unused local port
-# https://unix.stackexchange.com/questions/55913/whats-the-easiest-way-to-find-an-unused-local-port
-# https://unix.stackexchange.com/a/248319
-find-port:
-	@if [[ ! "$(PGPORT)" ]] ; then  \
-	  read LOWERPORT UPPERPORT < /proc/sys/net/ipv4/ip_local_port_range ; \
-	  while true ; do  \
-	    PGPORT="`shuf -i $$LOWERPORT-$$UPPERPORT -n 1`" ; \
-	    ss -lpn | grep -q ":$$PGPORT " || break ; \
-	  done ; \
-	fi
-	echo $(PGPORT)
+## Create user, db and load dump
+db-create: docker-wait
+	@echo "*** $@ ***" ; \
+	sql="CREATE USER \"$$PGUSER\" WITH PASSWORD '$$PGPASSWORD'" ; \
+	if [ -n "$$PGMIG_TEST_ROLE" ] && [[ "$$PGMIG_TEST_ROLE" != "$$PGUSER" ]] ; then sql="$$sql IN ROLE \"$$PGMIG_TEST_ROLE\"" ; fi ; \
+	docker exec -i $$PG_CONTAINER psql -U postgres -c "$$sql" 2> >(grep -v "already exists" >&2) || true ; \
+	docker exec -i $$PG_CONTAINER psql -U postgres -c "CREATE DATABASE \"$$PGDATABASE\" OWNER \"$$PGUSER\";" 2> >(grep -v "already exists" >&2) || db_exists=1 ; \
 
-## Start postgresql via docker
-test-docker-run: test-docker-user
-	@docker run --rm --name $$DB_CONTAINER \
-	-p "127.0.0.1:$$PGPORT:5432" \
-	-e POSTGRES_PASSWORD=$$PGPASSWORD \
-	-e POSTGRES_DB=$$PGDATABASE \
-	-e WORKDIR=/docker-entrypoint-initdb.d \
-	-v $(shell pwd)/tmp-db:/var/lib/postgresql/data \
-	-v $(shell pwd)/tmp:/docker-entrypoint-initdb.d $$PG_IMAGE
+## Drop database and user
+db-drop: docker-wait
+	@echo "*** $@ ***"
+	@docker exec -it $$PG_CONTAINER psql -U postgres -c "DROP DATABASE \"$$PGDATABASE\";" || true
+	@docker exec -it $$PG_CONTAINER psql -U postgres -c "DROP USER \"$$PGUSER\";" || true
 
-# TODO: ALTER DATABASE db WITH ALLOW_CONNECTIONS false;
-
-#
-test-docker-user: tmp/crebas.sql
-
-tmp/crebas.sql:
-	[ -d tmp ] || mkdir tmp
-	echo "create user \"$$PGUSER\" WITH PASSWORD '$$PGPASSWORD';" > $@
-	echo "alter database \"$$PGDATABASE\" OWNER TO \"$$PGUSER\";" >> $@
-
-## Run psql via docker
-psql-docker:
-	@docker exec -ti $$DB_CONTAINER psql -U $$PGUSER -d $$PGDATABASE
+psql: docker-wait ## Run psql
+	@docker exec -it $$PG_CONTAINER psql -U $$PGUSER -d $$PGDATABASE
 
 ## Run local psql
-psql:
+psql-local:
 	@psql
-
-# Stop postgresql via docker
-test-docker-stop:
-	docker stop $$DB_CONTAINER
 
 # ------------------------------------------------------------------------------
 ## Misc
