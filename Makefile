@@ -137,9 +137,8 @@ docker-wait:
 db-create: docker-wait
 	@echo "*** $@ ***" ; \
 	sql="CREATE USER \"$$PGUSER\" WITH PASSWORD '$$PGPASSWORD'" ; \
-	if [ -n "$$PGMIG_TEST_ROLE" ] && [[ "$$PGMIG_TEST_ROLE" != "$$PGUSER" ]] ; then sql="$$sql IN ROLE \"$$PGMIG_TEST_ROLE\"" ; fi ; \
 	docker exec -i $$PG_CONTAINER psql -U postgres -c "$$sql" 2> >(grep -v "already exists" >&2) || true ; \
-	docker exec -i $$PG_CONTAINER psql -U postgres -c "CREATE DATABASE \"$$PGDATABASE\" OWNER \"$$PGUSER\";" 2> >(grep -v "already exists" >&2) || db_exists=1 ; \
+	docker exec -i $$PG_CONTAINER psql -U postgres -c "CREATE DATABASE \"$$PGDATABASE\" OWNER \"$$PGUSER\";" 2> >(grep -v "already exists" >&2)
 
 ## Drop database and user
 db-drop: docker-wait
