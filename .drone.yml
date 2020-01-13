@@ -24,6 +24,7 @@ steps:
       PGDATABASE:  test
       PGUSER:      postgres
       PGAPPNAME:   procapi
+      TZ:          Europe/Berlin
 
 services:
   - name: database
