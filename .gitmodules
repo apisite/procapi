@@ -3,7 +3,7 @@
 	url = https://github.com/pgmig-sql/pgmig.git
 [submodule "testdata/rpc"]
 	path = testdata/rpc
-	url = https://github.com/gmig-sql/rpc.git
+	url = https://github.com/pgmig-sql/rpc.git
 [submodule "testdata/rpc_testing"]
 	path = testdata/rpc_testing
-	url = https://github.com/gmig-sql/rpc_testing.git
+	url = https://github.com/pgmig-sql/rpc_testing.git
