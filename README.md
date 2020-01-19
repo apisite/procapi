@@ -23,7 +23,7 @@
 [cc2]: https://codecov.io/gh/apisite/procapi
 [gd1]: https://godoc.org/github.com/apisite/procapi?status.svg
 [gd2]: https://godoc.org/github.com/apisite/procapi
-[gc1]: https://goreportcard.com/badge/github.com/apisite/tpl2x
+[gc1]: https://goreportcard.com/badge/github.com/apisite/procapi
 [gc2]: https://goreportcard.com/report/github.com/apisite/procapi
 [gr1]: https://img.shields.io/github/release-pre/apisite/procapi.svg
 [gr2]: https://github.com/apisite/procapi/releases
