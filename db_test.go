@@ -1,5 +1,3 @@
-// +build db
-
 package procapi
 
 import (
@@ -10,6 +8,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"sync"
 	"time"
 
@@ -59,7 +58,7 @@ func (ss *ServerSuite) SetupSuite() {
 	require.NoError(ss.T(), err)
 	ss.mig = pgmig.New(cfgMig, log, nil, "testdata")
 
-	ss.db, err = ss.mig.Connect("")
+	ss.db, err = ss.mig.Connect(os.Getenv("TEST_DATABASE"))
 	require.NoError(ss.T(), err)
 
 	ss.tx, err = ss.db.Begin(ctx)

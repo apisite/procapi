@@ -88,16 +88,12 @@ lint: linter-dep
 
 ## Show coverage
 cov: $(GOSOURCES)
+	TZ="Europe/Berlin" \
 	$(GO) test -coverprofile=coverage.txt -race -covermode=atomic -v ./...
 
-test: cov-db
+test: cov
 
-## Show coverage for DB tests
-cov-db:
-	TZ="Europe/Berlin" \
-	$(GO) test -coverprofile=coverage.out -race -covermode=atomic -tags=db -v ./...
-
-## Show coverage for DB tests and update testdata files
+## Show coverage and update testdata files
 cov-db-upd:
 	TEST_UPDATE=yes \
 	$(GO) test -coverprofile=coverage.out -race -covermode=atomic -tags=db -v ./...

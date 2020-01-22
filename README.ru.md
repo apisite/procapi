@@ -62,22 +62,16 @@ func Call(method string, args map[string]interface{}) ([]map[string]interface{},
 Библиотека разделена на следующие части:
 
 * [procapi](https://github.com/apisite/procapi) - реализация функции `Call`
-* [pgtype](https://github.com/apisite/procapi/tree/master/pgtype) - конвертация нативных для БД значений в go и обратно
 * [ginproc](https://github.com/apisite/procapi/tree/master/ginproc) - интеграция функционала в [gin](https://github.com/gin-gonic/gin)
 
 ## Особенности реализации
 
 ### Тесты
 
-#### Mock DB
-
-Функционал доступа к БД подменяется с помощью [gomock](https://github.com/golang/mock/)
-
 Варианты запуска:
 
-1. `go test ./...` - если пакет находится в дереве с корнем `$GOPATH`
-2. `GO111MODULE=on go test ./... ./pgtype/... ./ginproc/...` - при любом пути к пакету
-3. `make cov` - тесты с генерацией отчета о покрытии
+1. `TEST_DATABASE="{PG_DSN}" TZ="Europe/Berlin" go test ./...`
+3. `make cov` - тесты с генерацией отчета о покрытии (см `make help`)
 
 #### Postgresql
 
@@ -90,19 +84,17 @@ func Call(method string, args map[string]interface{}) ([]map[string]interface{},
 
 В любом из этих случаев, при выполнении тестов будут созданы и наполнены данными 3 схемы БД, которые после выполнения тестов будут удалены (по завершении тестов выполняется `ROLLBACK`).
 
-Для того, чтобы имена схем не пересеклись с уже существующими, к ним добавляется суффикс - случайная последовательность символов.
-
 Необходимый для тестов SQL-код подключается в каталог тестовых данных (`testdata`) посредством `git submodule`. Т.о., если проект не был склонирован с ключем `--recursive`, для подгрузки SQL необходимо выполнить
 ```
 git submodule init
 git submodule update
 ```
 
-Используемый для тестов SQL-код разработан в рамках проекта [pomasql](https://github.com/pomasql) и включает пакеты:
+Используемый для тестов SQL-код разработан в рамках проекта [pgmig](https://github.com/pgmig) и включает пакеты:
 
-* [poma](https://github.com/pomasql/poma) - сервисные функции
-* [rpc](https://github.com/pomasql/rpc) - поддержка RPC
-* [rpc_testing](https://github.com/pomasql/rpc_testing) - тестовые функции для [procapi](https://github.com/apisite/procapi)
+* [pgmig](https://github.com/pgmig-sql/pgmig) - сервисные функции
+* [rpc](https://github.com/pgmig-sql/rpc) - поддержка RPC
+* [rpc_testing](hhttps://github.com/pgmig-sql/rpc_testing) - тестовые функции для [procapi](https://github.com/apisite/procapi)
 
 См. также: [.drone.yml](https://github.com/apisite/procapi/blob/master/.drone.yml) - пример запуска тестов
 
@@ -114,7 +106,7 @@ git submodule update
 
 ### procapi
 
-Для получения информации из реестра используются функции с зашитыми в код сигнатурами (их имена могут быть изменены в настройках), вызов имеет вид `SELECT * FROM %c(code`:
+Для получения информации из реестра используются функции с зашитыми в код сигнатурами (их имена могут быть изменены в настройках), вызов имеет вид `SELECT * FROM %c(code)`:
 
 * `--db.index $name` (default:"index") - список доступных функций, структура ответа - [Method](https://godoc.org/github.com/apisite/procapi#Method)
 * `--db.indef $name` (default:"func_args") - описание аргументов функции, структура ответа - [InDef](https://godoc.org/github.com/apisite/procapi#InDef)
@@ -122,11 +114,11 @@ git submodule update
 
 ### pgtype
 
-Модуль предназначен для обработки случаев, когда [sqlx](https://github.com/jmoiron/sqlx) не конвертирует полученные из БД значения необходимым для API образом. Код реализовывает интерфейс [Marshaller](https://godoc.org/github.com/apisite/procapi#Marshaller) и может быть заменен другим с помощью вызова [SetMarshaller](https://godoc.org/github.com/apisite/procapi#Service.SetMarshaller).
+Структура `PGType` дополняет возможности [pgx v4](https://github.com/jackc/pgx/tree/v4). Код реализовывает интерфейс [Marshaller](https://godoc.org/github.com/apisite/procapi#Marshaller) и может быть заменен другим с помощью вызова [SetMarshaller](https://godoc.org/github.com/apisite/procapi#Service.SetMarshaller).
 
 ### ginproc
 
-Модуль добавляет в gin маршрутизацию для прямого вызова функций API и дополняет funcMap функциями доступа к API из шаблонов.
+Пакет добавляет в gin маршрутизацию для прямого вызова функций API и дополняет funcMap функциями доступа к API из шаблонов.
 Для работы с procapi используется интерфейс [ginproc.Caller](https://godoc.org/github.com/apisite/procapi/ginproc#Caller)
 
 ## TODO
