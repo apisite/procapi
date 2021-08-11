@@ -4,7 +4,7 @@ go 1.13
 
 require (
 	github.com/birkirb/loggers-mapper-logrus v0.0.0-20180326232643-461f2d8e6f72
-	github.com/gin-gonic/gin v1.5.0
+	github.com/gin-gonic/gin v1.7.3
 	github.com/golang/mock v1.3.1
 	github.com/jackc/pgtype v1.0.2
 	github.com/jackc/pgx/v4 v4.1.2
