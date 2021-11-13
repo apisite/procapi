@@ -3,7 +3,7 @@
 SHELL         = /bin/bash
 CFG           = .env
 GO           ?= go
-GOSOURCES    ?= ./... 
+GOSOURCES    ?= ./...
 #./ginproc
 
 CODECOV_KEY   =

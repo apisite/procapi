@@ -11,7 +11,7 @@ require (
 	github.com/jackc/pgtype v1.8.1
 	github.com/jessevdk/go-flags v1.4.0
 	github.com/jmoiron/sqlx v1.3.4
-	github.com/lib/pq v1.10.2
+	github.com/lib/pq v1.10.4
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/pkg/errors v0.8.1
 	github.com/sirupsen/logrus v1.4.2

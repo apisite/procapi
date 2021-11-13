@@ -3,7 +3,7 @@ name: default
 
 steps:
   - name: testing
-    image: golang:1.12
+    image: golang:1.16
     pull: true
     commands:
       - go test -v -race -coverprofile=coverage.txt -covermode=atomic ./... ./pgtype/... ./ginproc/...
@@ -15,7 +15,7 @@ steps:
     - until pg_isready -q -U postgres -h database ; do sleep 1 ; echo -n "." ; done
 
   - name: testing-db
-    image: golang:1.12
+    image: golang:1.16
     pull: true
     commands:
       - git submodule init
