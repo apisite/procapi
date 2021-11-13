@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jackc/pgx/pgtype"
+	"github.com/jackc/pgtype"
 	"github.com/jmoiron/sqlx/types"
 	"github.com/lib/pq"
 )
