@@ -24,7 +24,7 @@ PGDATABASE   ?= $(PRG)
 PGUSER       ?= $(PRG)
 PGAPPNAME    ?= $(PRG)
 PGHOST       ?= localhost
-PGPORT       ?= 5431
+PGPORT       ?= 5472
 PGSSLMODE    ?= disable
 PGPASSWORD   ?= $(shell < /dev/urandom tr -dc A-Za-z0-9 | head -c14; echo)
 
@@ -96,6 +96,7 @@ test: cov
 ## Show coverage and update testdata files
 cov-db-upd:
 	TEST_UPDATE=yes \
+	TZ="Europe/Berlin" \
 	$(GO) test -coverprofile=coverage.out -race -covermode=atomic -tags=db -v ./...
 
 ## Show package coverage in html

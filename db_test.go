@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
-	"net"
+//	"net"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -86,6 +86,7 @@ func (ss *ServerSuite) SetupSuite() {
 func (ss *ServerSuite) TearDownSuite() {
 	fmt.Printf("exit\n")
 	ss.tx.Rollback(context.Background())
+//	ss.tx.Commit(context.Background())
 	ss.db.Close(context.Background())
 
 	close(ss.mig.MessageChan)
@@ -118,13 +119,6 @@ func (ss *ServerSuite) TestCall() {
 	args["tint4"] = int(args["tint4"].(float64))
 	args["tint2"] = int(args["tint2"].(float64))
 
-	// TODO: inet loses net when fetched from db
-	ip, ipnet, err := net.ParseCIDR(args["tinet"].(string))
-	require.NoError(ss.T(), err)
-	ipnet.IP = ip
-	args["tinet"] = ipnet
-	//	fmt.Printf("=============>> %#v\n", ipnet.String())
-
 	rv, err = ss.srv.CallTx(tx, "test_types", args)
 	require.NoError(ss.T(), err)
 	require.NotNil(ss.T(), rv)
@@ -133,7 +127,6 @@ func (ss *ServerSuite) TestCall() {
 	rv01 := rv0.(map[string]interface{})
 
 	rv01["tfloat4"] = math.Round(float64(rv01["tfloat4"].(float32))*1000) / 1000
-	rv01["tnumeric"] = math.Round(rv01["tnumeric"].(float64)*10000) / 10000
 
 	helperCheckTestUpdate("test_types_args", rv01)
 	helperCheckTestUpdate("test_types_rv", rv)

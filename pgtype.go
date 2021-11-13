@@ -26,7 +26,7 @@ func (t PGType) Marshal(typ string, val interface{}) (rv interface{}, err error)
 func (t PGType) Unmarshal(typ string, val interface{}) (rv interface{}, err error) {
 	switch typ {
 	case "text[]":
-		src := val.(*pgtype.TextArray)
+		src := val.(pgtype.TextArray)
 		var x []string
 		err = src.AssignTo(&x)
 		if err != nil {
@@ -35,7 +35,7 @@ func (t PGType) Unmarshal(typ string, val interface{}) (rv interface{}, err erro
 		rv = &x
 	case "integer[]":
 		// TODO: parsed wrong
-		src, ok := val.(*pgtype.Int4Array)
+		src, ok := val.(pgtype.Int4Array)
 		if !ok {
 			err = fmt.Errorf("(2)Type %s, Val %+v error: %w", typ, val, err)
 		}
@@ -58,7 +58,7 @@ func (t PGType) Unmarshal(typ string, val interface{}) (rv interface{}, err erro
 	case "name":
 		rv = string(val.([]byte))
 	case "interval":
-		src := val.(*pgtype.Interval)
+		src := val.(pgtype.Interval)
 		var x time.Duration
 		x = time.Duration(src.Microseconds) * time.Microsecond // TODO: +Days* + Months*
 		rv = x.String()
@@ -67,7 +67,7 @@ func (t PGType) Unmarshal(typ string, val interface{}) (rv interface{}, err erro
 		// TODO: convert "$5,678.90" -> 5678.90 ?
 		rv = string(val.([]byte))
 	case "numeric":
-		src := val.(*pgtype.Numeric)
+		src := val.(pgtype.Numeric)
 		var x float64
 		src.AssignTo(&x)
 		rv = x
