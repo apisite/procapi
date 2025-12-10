@@ -14,11 +14,13 @@ import (
 
 	mapper "github.com/birkirb/loggers-mapper-logrus"
 	"github.com/jessevdk/go-flags"
-	"github.com/sirupsen/logrus"
-	"github.com/sirupsen/logrus/hooks/test"
+//	"github.com/sirupsen/logrus"
+//	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+	"github.com/wojas/genericr"
+	"github.com/go-logr/logr"
 
 	"github.com/pgmig/pgmig"
 
@@ -29,7 +31,7 @@ type ServerSuite struct {
 	suite.Suite
 	cfg  Config
 	srv  *Service
-	hook *test.Hook
+//	hook *test.Hook
 	req  *http.Request
 	db   *pgx.Conn
 	tx   pgx.Tx
@@ -44,21 +46,21 @@ func (ss *ServerSuite) SetupSuite() {
 	_, err := p.Parse()
 	require.NoError(ss.T(), err)
 
-	l, hook := test.NewNullLogger()
-	ss.hook = hook
-	l.SetLevel(logrus.DebugLevel)
-	log := mapper.NewLogger(l)
+	sink := genericr.New(func(e genericr.Entry) {
+		ss.T().Log(e.String())
+	})
+	log := logr.New(sink)
 
-	hook.Reset()
+//	hook.Reset()
 
 	ctx := context.Background()
 	var cfgMig pgmig.Config
 	p = flags.NewParser(&cfgMig, flags.Default|flags.IgnoreUnknown)
 	_, err = p.Parse()
 	require.NoError(ss.T(), err)
-	ss.mig = pgmig.New(cfgMig, log, nil, "testdata")
+	ss.mig = pgmig.New(log, cfgMig, nil, "testdata")
 
-	ss.db, err = ss.mig.Connect(os.Getenv("TEST_DATABASE"))
+	ss.db, err = ss.mig.Connect(ctx, os.Getenv("TEST_DATABASE"))
 	require.NoError(ss.T(), err)
 
 	ss.tx, err = ss.db.Begin(ctx)

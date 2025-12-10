@@ -10,7 +10,7 @@ import (
 	"sync"
 
 	"github.com/jackc/pgx/v4"
-	"gopkg.in/birkirb/loggers.v1"
+	"github.com/go-logr/logr"
 )
 
 // codebeat:disable[TOO_MANY_IVARS]
@@ -69,7 +69,7 @@ type Method struct {
 type Service struct {
 	dbh          *pgx.Conn
 	config       Config
-	log          loggers.Contextual
+	log          logr.Logger
 	methods      map[string]Method
 	mx           sync.RWMutex
 	typeM        Marshaller
@@ -99,7 +99,7 @@ func Marshall(m Marshaller) Option {
 }
 
 // New returns procapi service
-func New(cfg Config, log loggers.Contextual, dbh *pgx.Conn, options ...Option) *Service {
+func New(cfg Config, log logr.Logger, dbh *pgx.Conn, options ...Option) *Service {
 	srv := &Service{
 		log: log, config: cfg, dbh: dbh,
 	}
